@@ -12,6 +12,8 @@ tensorboard = "*"
 matplotlib = "*"
 opencc = "*"
 transformers = "*"
+requests = "*"
+tqdm = "*"
 
 [dev-packages]
 yapf = "*"

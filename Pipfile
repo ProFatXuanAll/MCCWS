@@ -14,6 +14,8 @@ opencc = "*"
 transformers = "*"
 requests = "*"
 tqdm = "*"
+patool = "*"
+pyunpack = "*"
 
 [dev-packages]
 yapf = "*"

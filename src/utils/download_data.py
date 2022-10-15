@@ -1,13 +1,16 @@
 import io
 import logging
 import os
-import zipfile
+import re
 import shutil
+import tarfile
+import xml.etree.ElementTree as ET
+import zipfile
 from typing import Final
 
+import pyunpack
 import requests
 from tqdm import tqdm
-import pyunpack
 
 import src.vars
 
@@ -61,7 +64,12 @@ def download_file(desc: str, download_file_name: str, url: str) -> None:
     return
 
   logger.info('Start downloading file.')
-  with requests.get(url, stream=True) as response, open(download_file_path, 'wb') as download_file:
+
+  # Create http header to authenticate ourselve as users.
+  # See https://stackoverflow.com/a/67809908
+  headers = requests.utils.default_headers()
+  headers.update({'User-Agent': 'My User Agent 1.0'})
+  with requests.get(url, headers=headers, stream=True) as response, open(download_file_path, 'wb') as download_file:
     download_progress_bar = create_download_progress_bar(
       desc=desc,
       total_bytes=int(response.headers.get('content-length', 0)),
@@ -211,3 +219,136 @@ def download_SIGHAN_2008_bakeoff_SXU() -> None:
     logger.info(f'Finish renaming {output_txt_file_name}.')
   shutil.rmtree(os.path.join(src.vars.DOWNLOAD_DATA_PATH, '中文分词评测测试+训练语料'))
   logger.info('Finish extracting raw data.')
+
+
+def download_CTB8() -> None:
+  """Download CTB8 dataset.
+
+  Source: https://wakespace.lib.wfu.edu/handle/10339/39379
+  """
+  # Download dataset.
+  download_file(
+    desc='downloading CTB8 dataset',
+    download_file_name='LDC2013T21.tgz',
+    url='https://wakespace.lib.wfu.edu/bitstream/handle/10339/39379/LDC2013T21.tgz',
+  )
+
+  # File structure mapping.
+  # Test file are defined by CTB8.0 official.
+  test_file_range = list(range(1, 44)) + list(range(144, 170)) + list(range(900, 932)) + [
+    1018, 1020, 1036, 1044, 1060, 1061, 1072, 1118, 1119, 1132, 1141, 1142, 1148
+  ]
+
+  # is_all_file_extracted = True
+  # for _, output_txt_file_name in txt_file_mapping:
+  #   if not os.path.exists(os.path.join(src.vars.RAW_DATA_PATH, output_txt_file_name)):
+  #     is_all_file_extracted = False
+  #     break
+
+  # if is_all_file_extracted:
+  #   logger.info('Skip extracting raw data: CTB8 raw data are already extracted.')
+  #   return
+
+  logger.info('Start extracting raw data.')
+
+  # Extract CTB8 from tgz file.
+  tarfile.open(os.path.join(src.vars.DOWNLOAD_DATA_PATH, 'LDC2013T21.tgz'), 'r').extractall(src.vars.DOWNLOAD_DATA_PATH)
+  data_folder_path = os.path.join(src.vars.DOWNLOAD_DATA_PATH, 'ctb8.0', 'data', 'segmented')
+
+  output_train_txt_file = open(os.path.join(src.vars.RAW_DATA_PATH, 'ctb8_train.txt'), 'w')
+  output_test_txt_file = open(os.path.join(src.vars.RAW_DATA_PATH, 'ctb8_test.txt'), 'w')
+
+  for input_file_name in os.listdir(data_folder_path):
+    logger.info(f'Start extracting {input_file_name}.')
+
+    file_id = int(re.match(r'chtb_(\d{4})', input_file_name)[1])
+    input_txt_file = open(os.path.join(data_folder_path, input_file_name), 'r')
+    raw_xml = input_txt_file.read()
+    input_txt_file.close()
+
+    if re.match(r'chtb_\d{4}\.seg', input_file_name):
+      raw_xml = re.sub(r'<su id=\w+>', r'', raw_xml)
+      for txt in re.split(r'\n+', raw_xml):
+        txt = txt.strip()
+        # Discard empty lines.
+        if not txt:
+          continue
+        if file_id in test_file_range:
+          output_test_txt_file.write(txt + '\n')
+        else:
+          output_train_txt_file.write(txt + '\n')
+    else:
+      raw_xml = re.sub(r'<S ID=\d+>', r'<S>', raw_xml)
+      raw_xml = f'<ROOT>{raw_xml}</ROOT'
+      try:
+        xml_root = ET.fromstring(raw_xml)
+      except Exception as err:
+        print(err)
+        print(input_file_name)
+        exit()
+
+      for ele in xml_root.findall('*//S') + xml_root.findall('*//seg') + xml_root.findall('*//segment'):
+        txt = ele.text.strip()
+        # Discard empty lines.
+        if not txt:
+          continue
+        if file_id in test_file_range:
+          output_test_txt_file.write(txt + '\n')
+        else:
+          output_train_txt_file.write(txt + '\n')
+
+    # if re.match(r'chtb_\d{4}\.seg', input_file_name):
+    #   raw_xml = re.sub(r'<su id=\w+>', r'', raw_xml)
+    #   for txt in re.split(r'\n+', raw_xml):
+    #     txt = txt.strip()
+    #     # Discard empty lines.
+    #     if not txt:
+    #       continue
+    #     if file_id in test_file_range:
+    #       output_test_txt_file.write(txt + '\n')
+    #     else:
+    #       output_train_txt_file.write(txt + '\n')
+    # else:
+    #   raw_xml = re.sub(r'<S ID=\d+>', r'<S>', raw_xml)
+    #   try:
+    #     xml_root = ET.fromstring(raw_xml)
+    #   except Exception as err:
+    #     print(err)
+    #     print(input_file_name)
+    #     exit()
+
+    #   for ele in xml_root.findall('*//S') + xml_root.findall('*//su'):
+    #     txt = ele.text.strip()
+    #     # Discard empty lines.
+    #     if not txt:
+    #       continue
+    #     if file_id in test_file_range:
+    #       output_test_txt_file.write(txt + '\n')
+    #     else:
+    #       output_train_txt_file.write(txt + '\n')
+
+    logger.info(f'Finish extracting {input_file_name}.')
+  shutil.rmtree(os.path.join(src.vars.DOWNLOAD_DATA_PATH, 'ctb8.0'))
+
+  output_train_txt_file.close()
+  output_test_txt_file.close()
+
+  logger.info('Finish extracting raw data.')
+
+
+def download_liwenzhu() -> None:
+  """Download dataset provided by liwenzhu.
+
+  Currently not sure to use it or not.
+  Function is left empty
+
+  Source: https://github.com/liwenzhu/corpusZh
+  """
+  pass
+
+
+def download_all() -> None:
+  """Download all datasets."""
+  download_SIGHAN_2005_bakeoff()
+  download_SIGHAN_2008_bakeoff_SXU()
+  download_NLPCC_2016_Weibo()

@@ -4,7 +4,6 @@ import os
 import re
 import shutil
 import tarfile
-import xml.etree.ElementTree as ET
 import zipfile
 from typing import Final
 
@@ -24,9 +23,11 @@ def create_data_folder() -> None:
   # Create data root folder.
   if not os.path.exists(src.vars.DATA_PATH):
     os.makedirs(src.vars.DATA_PATH)
+
   # Create download data folder.
   if not os.path.exists(src.vars.DOWNLOAD_DATA_PATH):
     os.makedirs(src.vars.DOWNLOAD_DATA_PATH)
+
   # Create raw data folder.
   if not os.path.exists(src.vars.RAW_DATA_PATH):
     os.makedirs(src.vars.RAW_DATA_PATH)
@@ -78,6 +79,7 @@ def download_file(desc: str, download_file_name: str, url: str) -> None:
       size = download_file.write(data)
       download_progress_bar.update(size)
     download_progress_bar.close()
+
   logger.info('Finish downloading file.')
 
 
@@ -115,14 +117,18 @@ def download_SIGHAN_2005_bakeoff() -> None:
     return
 
   logger.info('Start extracting raw data.')
+
   with zipfile.ZipFile(os.path.join(src.vars.DOWNLOAD_DATA_PATH, 'icwb2-data.zip'), 'r') as input_zipfile:
     for input_txt_file_path, output_txt_file_name in txt_file_mapping:
       logger.info(f'Start extracting {output_txt_file_name}.')
+
       with io.TextIOWrapper(input_zipfile.open(input_txt_file_path, 'r'), encoding='utf-8') as input_txt_file:
         data = input_txt_file.read()
         with open(os.path.join(src.vars.RAW_DATA_PATH, output_txt_file_name), 'w', encoding='utf-8') as output_txt_file:
           output_txt_file.write(data)
+
       logger.info(f'Finish extracting {output_txt_file_name}.')
+
   logger.info('Finish extracting raw data.')
 
 
@@ -209,14 +215,18 @@ def download_SIGHAN_2008_bakeoff_SXU() -> None:
     return
 
   logger.info('Start extracting raw data.')
+
   pyunpack.Archive(os.path.join(src.vars.DOWNLOAD_DATA_PATH, 'backoff2008.rar')).extractall(src.vars.DOWNLOAD_DATA_PATH)
   for input_txt_file_path, output_txt_file_name in txt_file_mapping:
     logger.info(f'Start renaming {output_txt_file_name}.')
+
     with open(os.path.join(src.vars.DOWNLOAD_DATA_PATH, input_txt_file_path), 'r', encoding='utf-16') as input_txt_file:
       data = input_txt_file.read()
       with open(os.path.join(src.vars.RAW_DATA_PATH, output_txt_file_name), 'w', encoding='utf-8') as output_txt_file:
         output_txt_file.write(data)
+
     logger.info(f'Finish renaming {output_txt_file_name}.')
+
   shutil.rmtree(os.path.join(src.vars.DOWNLOAD_DATA_PATH, '中文分词评测测试+训练语料'))
   logger.info('Finish extracting raw data.')
 
@@ -239,15 +249,15 @@ def download_CTB8() -> None:
     1018, 1020, 1036, 1044, 1060, 1061, 1072, 1118, 1119, 1132, 1141, 1142, 1148
   ]
 
-  # is_all_file_extracted = True
-  # for _, output_txt_file_name in txt_file_mapping:
-  #   if not os.path.exists(os.path.join(src.vars.RAW_DATA_PATH, output_txt_file_name)):
-  #     is_all_file_extracted = False
-  #     break
+  is_all_file_extracted = True
+  for output_txt_file_name in ['ctb8_train.txt', 'ctb8_test.txt']:
+    if not os.path.exists(os.path.join(src.vars.RAW_DATA_PATH, output_txt_file_name)):
+      is_all_file_extracted = False
+      break
 
-  # if is_all_file_extracted:
-  #   logger.info('Skip extracting raw data: CTB8 raw data are already extracted.')
-  #   return
+  if is_all_file_extracted:
+    logger.info('Skip extracting raw data: CTB8 raw data are already extracted.')
+    return
 
   logger.info('Start extracting raw data.')
 
@@ -258,7 +268,7 @@ def download_CTB8() -> None:
   output_train_txt_file = open(os.path.join(src.vars.RAW_DATA_PATH, 'ctb8_train.txt'), 'w')
   output_test_txt_file = open(os.path.join(src.vars.RAW_DATA_PATH, 'ctb8_test.txt'), 'w')
 
-  for input_file_name in os.listdir(data_folder_path):
+  for input_file_name in sorted(os.listdir(data_folder_path)):
     logger.info(f'Start extracting {input_file_name}.')
 
     file_id = int(re.match(r'chtb_(\d{4})', input_file_name)[1])
@@ -266,66 +276,58 @@ def download_CTB8() -> None:
     raw_xml = input_txt_file.read()
     input_txt_file.close()
 
-    if re.match(r'chtb_\d{4}\.seg', input_file_name):
-      raw_xml = re.sub(r'<su id=\w+>', r'', raw_xml)
-      for txt in re.split(r'\n+', raw_xml):
-        txt = txt.strip()
-        # Discard empty lines.
-        if not txt:
-          continue
-        if file_id in test_file_range:
-          output_test_txt_file.write(txt + '\n')
-        else:
-          output_train_txt_file.write(txt + '\n')
-    else:
-      raw_xml = re.sub(r'<S ID=\d+>', r'<S>', raw_xml)
-      raw_xml = f'<ROOT>{raw_xml}</ROOT'
-      try:
-        xml_root = ET.fromstring(raw_xml)
-      except Exception as err:
-        print(err)
-        print(input_file_name)
-        exit()
+    # Remove XML tags.
+    # We do not use XML parser since some data is not valid XML.
+    raw_xml = re.sub(r'<DOC>', r'', raw_xml)
+    raw_xml = re.sub(r'<DOCNO>.*</DOCNO>', r'', raw_xml)
+    raw_xml = re.sub(r'<DOCTYPE[^>]*>.*</DOCTYPE>', r'', raw_xml)
+    raw_xml = re.sub(r'<DATE_TIME>.*</DATE_TIME>', r'', raw_xml)
+    raw_xml = re.sub(r'<DATETIME>.*</DATETIME>', r'', raw_xml)
+    raw_xml = re.sub(r'<DATE>.*</DATE>', r'', raw_xml)
+    raw_xml = re.sub(r'<DOCID>.*</DOCID>', r'', raw_xml)
+    raw_xml = re.sub(r'<HEADER>.*</HEADER>', r'', raw_xml)
+    raw_xml = re.sub(r'<HEADER>', r'', raw_xml)
+    raw_xml = re.sub(r'</HEADER>', r'', raw_xml)
+    raw_xml = re.sub(r'<BODY>', r'', raw_xml)
+    raw_xml = re.sub(r'<HEADLINE>', r'', raw_xml)
+    raw_xml = re.sub(r'<S ID=\w+>', r'', raw_xml)
+    raw_xml = re.sub(r'</S>', r'', raw_xml)
+    raw_xml = re.sub(r'<TEXT>', r'', raw_xml)
+    raw_xml = re.sub(r'<TURN>', r'', raw_xml)
+    raw_xml = re.sub(r'<P>', r'', raw_xml)
+    raw_xml = re.sub(r'</P>', r'', raw_xml)
+    raw_xml = re.sub(r'</TURN>', r'', raw_xml)
+    raw_xml = re.sub(r'</TEXT>', r'', raw_xml)
+    raw_xml = re.sub(r'</HEADLINE>', r'', raw_xml)
+    raw_xml = re.sub(r'</BODY>', r'', raw_xml)
+    raw_xml = re.sub(r'<ENDTIME>.*</ENDTIME>', r'', raw_xml)
+    raw_xml = re.sub(r'<END_TIME>.*</END_TIME>', r'', raw_xml)
+    raw_xml = re.sub(r'</DOC>', r'', raw_xml)
+    raw_xml = re.sub(r'<seg id="\w+">', r'', raw_xml)
+    raw_xml = re.sub(r'</seg>', r'', raw_xml)
+    raw_xml = re.sub(r'<segment id="\w+" start="[^"]+" end="[^"]+">', r'', raw_xml)
+    raw_xml = re.sub(r'</segment>', r'', raw_xml)
+    raw_xml = re.sub(r'<su id=\w+>', r'', raw_xml)
 
-      for ele in xml_root.findall('*//S') + xml_root.findall('*//seg') + xml_root.findall('*//segment'):
-        txt = ele.text.strip()
-        # Discard empty lines.
-        if not txt:
-          continue
-        if file_id in test_file_range:
-          output_test_txt_file.write(txt + '\n')
-        else:
-          output_train_txt_file.write(txt + '\n')
+    sents = []
+    for sent in re.split(r'\n+', raw_xml):
+      sent = sent.strip()
+      # Discard empty lines.
+      if not sent:
+        continue
+      # Discard closing hints.
+      if sent in ['（ 完 ）', '完', 'ＥＭＰＴＹ']:
+        continue
+      # Discard lines consist entirely of non-words.
+      if re.match(r'^\W+$', sent):
+        continue
+      sents.append(sent)
 
-    # if re.match(r'chtb_\d{4}\.seg', input_file_name):
-    #   raw_xml = re.sub(r'<su id=\w+>', r'', raw_xml)
-    #   for txt in re.split(r'\n+', raw_xml):
-    #     txt = txt.strip()
-    #     # Discard empty lines.
-    #     if not txt:
-    #       continue
-    #     if file_id in test_file_range:
-    #       output_test_txt_file.write(txt + '\n')
-    #     else:
-    #       output_train_txt_file.write(txt + '\n')
-    # else:
-    #   raw_xml = re.sub(r'<S ID=\d+>', r'<S>', raw_xml)
-    #   try:
-    #     xml_root = ET.fromstring(raw_xml)
-    #   except Exception as err:
-    #     print(err)
-    #     print(input_file_name)
-    #     exit()
-
-    #   for ele in xml_root.findall('*//S') + xml_root.findall('*//su'):
-    #     txt = ele.text.strip()
-    #     # Discard empty lines.
-    #     if not txt:
-    #       continue
-    #     if file_id in test_file_range:
-    #       output_test_txt_file.write(txt + '\n')
-    #     else:
-    #       output_train_txt_file.write(txt + '\n')
+    for sent in sents:
+      if file_id in test_file_range:
+        output_test_txt_file.write(sent + '\n')
+      else:
+        output_train_txt_file.write(sent + '\n')
 
     logger.info(f'Finish extracting {input_file_name}.')
   shutil.rmtree(os.path.join(src.vars.DOWNLOAD_DATA_PATH, 'ctb8.0'))
@@ -352,3 +354,4 @@ def download_all() -> None:
   download_SIGHAN_2005_bakeoff()
   download_SIGHAN_2008_bakeoff_SXU()
   download_NLPCC_2016_Weibo()
+  download_CTB8()

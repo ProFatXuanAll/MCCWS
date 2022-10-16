@@ -355,3 +355,11 @@ def download_all() -> None:
   download_SIGHAN_2008_bakeoff_SXU()
   download_NLPCC_2016_Weibo()
   download_CTB8()
+
+
+if __name__ == '__main__':
+  # Show logs.
+  logging.basicConfig(level=logging.INFO)
+
+  # Download all datasets.
+  download_all()

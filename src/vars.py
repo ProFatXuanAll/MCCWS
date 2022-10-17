@@ -7,6 +7,7 @@ PROJECT_ROOT: Final[str] = os.path.abspath(os.path.join(os.path.abspath(__file__
 DATA_PATH: Final[str] = os.path.join(PROJECT_ROOT, 'data')
 DOWNLOAD_DATA_PATH: Final[str] = os.path.join(DATA_PATH, 'download')
 RAW_DATA_PATH: Final[str] = os.path.join(DATA_PATH, 'raw')
+PREPROCESS_DATA_PATH: Final[str] = os.path.join(DATA_PATH, 'preprocess')
 
 # Experiment related path.
 EXP_PATH: Final[str] = os.path.join(PROJECT_ROOT, 'exp')

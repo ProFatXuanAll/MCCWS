@@ -41,13 +41,13 @@ import src.vars
 logger = logging.getLogger(__name__)
 
 
-def save_model(step: int, exp_name: str, model: torch.nn.Module):
+def save_model(step: int, exp_name: str, model: torch.nn.Module) -> None:
   file_path = os.path.join(src.vars.EXP_PATH, exp_name, f'model-{step}.pt')
   torch.save(model, file_path)
 
 
 def parse_args(argv: List[str]) -> argparse.Namespace:
-  parser = argparse.ArgumentParser('python -m src.train', description='Train MCCWS model.')
+  parser = argparse.ArgumentParser('python -m src.train_mccws', description='Train MCCWS model.')
   parser.add_argument(
     '--pre_exp_name',
     help='''
@@ -174,10 +174,10 @@ def main(argv: List[str]) -> None:
   if not os.path.exists(log_dir_path):
     os.makedirs(log_dir_path)
 
-  # Save preprocess configuration.
+  # Save training configuration.
   json.dump(
     args.__dict__,
-    open(os.path.join(exp_dir_path, 'training_cfg.json'), 'w', encoding='utf-8'),
+    open(os.path.join(exp_dir_path, 'train_cfg.json'), 'w', encoding='utf-8'),
     ensure_ascii=False,
     indent=2,
     sort_keys=True,

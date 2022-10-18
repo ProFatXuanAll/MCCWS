@@ -1,5 +1,6 @@
+import json
 import os
-from typing import List, Optional
+from typing import Optional
 
 import torch
 import torch.nn as nn
@@ -11,23 +12,24 @@ import src.vars
 
 class WithCriterion(nn.Module):
 
-  def __init__(self, pre_exp_name: str, p_drop: float, dset_names: List[str]):
+  def __init__(self, pre_exp_name: str, p_drop: float):
     super().__init__()
 
     model_name = os.path.join(src.vars.EXP_PATH, pre_exp_name)
     self.encoder = transformers.BertModel.from_pretrained(model_name)
     cfg = transformers.BertConfig.from_pretrained(model_name)
 
+    self.criterion_encode = json.load(open(os.path.join(model_name, 'criterion_encode.json'), 'r'))
     self.n_tags = len(src.vars.TAG_SET)
-    self.n_dsets = len(dset_names)
+    self.n_dsets = len(self.criterion_encode)
 
     self.bmes_linear = nn.Sequential(
       nn.Dropout(p=p_drop),
-      nn.Linear(in_features=cfg.hidden_size, out_features=len(src.vars.TAG_SET)),
+      nn.Linear(in_features=cfg.hidden_size, out_features=self.n_tags),
     )
     self.criterion_linear = nn.Sequential(
       nn.Dropout(p=p_drop),
-      nn.Linear(in_features=cfg.hidden_size, out_features=len(dset_names)),
+      nn.Linear(in_features=cfg.hidden_size, out_features=self.n_dsets),
     )
 
     self.bmes_loss_fn = nn.CrossEntropyLoss(ignore_index=src.vars.TAG_SET['pad'])

@@ -4,7 +4,8 @@ r"""Text preprocess script.
 
   python -m src.preprocess \
     --dev_ratio 0.1 \
-    --exp_name my_preproc_exp \
+    --exp_name my_pre_exp \
+    --model_name bert-base-chinese \
     --max_len 60 \
     --seed 42 \
     --use_dset as \
@@ -14,7 +15,8 @@ r"""Text preprocess script.
     --use_width_norm 1 \
     --use_num_norm 1 \
     --use_alpha_norm 1 \
-    --use_mix_alpha_num_norm 1
+    --use_mix_alpha_num_norm 1 \
+    --use_unc 1
 """
 
 import argparse
@@ -334,6 +336,7 @@ def load_tknzr(
 
 
 def encode_sents(
+  criterion_encode: Dict[str, int],
   dset_name: str,
   max_len: int,
   sents: List[str],
@@ -356,7 +359,7 @@ def encode_sents(
         answer.extend([TAG_SET['b'], TAG_SET['e']])
       else:
         answer.extend([TAG_SET['b']] + [TAG_SET['m']] * (len(word) - 2) + [TAG_SET['e']])
-    answer = tknzr.encode(f'[{dset_name}]', add_special_tokens=False) + answer
+    answer = [criterion_encode[dset_name]] + answer
 
     # First remove spaces between "words", then insert spaces between "characters".
     # This is need for sentencepiece to split sentences into characters.
@@ -372,17 +375,16 @@ def encode_sents(
       truncation=False,
       max_length=max_len + 3,  # for [CLS], [criterion] and [SEP].
       is_split_into_words=False,
-      return_tensors='pt',
       return_attention_mask=True,
       return_token_type_ids=True,
     )
 
-    tensor_data['input_ids'].append(enc['input_ids'][0])
-    tensor_data['token_type_ids'].append(enc['token_type_ids'][0])
-    tensor_data['attention_mask'].append(enc['attention_mask'][0])
+    tensor_data['input_ids'].append(enc['input_ids'])
+    tensor_data['token_type_ids'].append(enc['token_type_ids'])
+    tensor_data['attention_mask'].append(enc['attention_mask'])
 
     answer = answer + [TAG_SET['pad']] * max(0, max_len + 2 - len(answer))
-    tensor_data['answer'].append(torch.LongTensor(answer))
+    tensor_data['answer'].append(answer)
 
   return tensor_data
 
@@ -455,6 +457,16 @@ def main(argv: List[str]) -> None:
   if args.use_mix_alpha_num_norm:
     norm_funcs.append(mix_alpha_norm)
 
+  criterion_encode = {dset_name: idx for idx, dset_name in enumerate(args.use_dset)}
+
+  json.dump(
+    criterion_encode,
+    open(os.path.join(preprocess_exp_model_dir_path, 'criterion_encode.json'), 'w', encoding='utf-8'),
+    ensure_ascii=False,
+    indent=2,
+    sort_keys=True,
+  )
+
   for dset_name in args.use_dset:
     test_sents = read_sents_from_file(file_name=f'{dset_name}_test.txt', norm_funcs=norm_funcs)
     # If no development set, then split development set from training set.
@@ -475,9 +487,27 @@ def main(argv: List[str]) -> None:
     write_sents_to_file(exp_name=args.exp_name, file_name=f'{dset_name}_dev.txt', sents=dev_sents)
     write_sents_to_file(exp_name=args.exp_name, file_name=f'{dset_name}_test.txt', sents=test_sents)
 
-    train_tensor_data = encode_sents(dset_name=dset_name, max_len=args.max_len, sents=train_sents, tknzr=tknzr)
-    dev_tensor_data = encode_sents(dset_name=dset_name, max_len=args.max_len, sents=dev_sents, tknzr=tknzr)
-    test_tensor_data = encode_sents(dset_name=dset_name, max_len=args.max_len, sents=test_sents, tknzr=tknzr)
+    train_tensor_data = encode_sents(
+      criterion_encode=criterion_encode,
+      dset_name=dset_name,
+      max_len=args.max_len,
+      sents=train_sents,
+      tknzr=tknzr,
+    )
+    dev_tensor_data = encode_sents(
+      criterion_encode=criterion_encode,
+      dset_name=dset_name,
+      max_len=args.max_len,
+      sents=dev_sents,
+      tknzr=tknzr,
+    )
+    test_tensor_data = encode_sents(
+      criterion_encode=criterion_encode,
+      dset_name=dset_name,
+      max_len=args.max_len,
+      sents=test_sents,
+      tknzr=tknzr,
+    )
 
     write_tensor_data_to_file(exp_name=args.exp_name, file_name=f'{dset_name}_train.pkl', tensor_data=train_tensor_data)
     write_tensor_data_to_file(exp_name=args.exp_name, file_name=f'{dset_name}_dev.pkl', tensor_data=dev_tensor_data)

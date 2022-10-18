@@ -14,10 +14,6 @@
     --p_drop 0.1 \
     --seed 42 \
     --total_step 200000 \
-    --use_dset as \
-    --use_dset cityu \
-    --use_dset msr \
-    --use_dset pku \
     --use_unc 1 \
     --warmup_step 50000 \
     --weight_decay 0.0
@@ -134,13 +130,6 @@ def parse_args(argv: List[str]) -> argparse.Namespace:
     type=int,
   )
   parser.add_argument(
-    '--use_dset',
-    action='append',
-    choices=src.vars.ALL_DSETS,
-    help='Select datasets to load.',
-    required=True,
-  )
-  parser.add_argument(
     '--use_unc',
     help='''
     Whether to use [unc] tokens.
@@ -169,12 +158,6 @@ def parse_args(argv: List[str]) -> argparse.Namespace:
   if args.warmup_step > args.total_step:
     logger.error('Warmup step must be less than total step')
     exit(0)
-
-  # Must choose at least one dataset.
-  if not args.use_dset:
-    logger.error('Must choose at least one dataset.')
-    exit(0)
-  args.use_dset.sort()
 
   return args
 
@@ -208,12 +191,7 @@ def main(argv: List[str]) -> None:
 
   data_loader = torch.utils.data.DataLoader(
     batch_size=args.batch_size,
-    dataset=src.dset.Dset(
-      dset_names=args.use_dset,
-      pre_exp_name=args.pre_exp_name,
-      split='train',
-      use_unc=args.use_unc,
-    ),
+    dataset=src.dset.TrainDset(pre_exp_name=args.pre_exp_name, use_unc=args.use_unc),
     shuffle=True,
   )
 
@@ -223,7 +201,6 @@ def main(argv: List[str]) -> None:
   model = src.model.WithCriterion(
     pre_exp_name=args.pre_exp_name,
     p_drop=args.p_drop,
-    dset_names=args.use_dset,
   )
   model.train()
   model = model.to(device)
@@ -249,10 +226,10 @@ def main(argv: List[str]) -> None:
     num_training_steps=args.total_step,
   )
 
+  logger.info('Start training model.')
+
   writer = torch.utils.tensorboard.SummaryWriter(log_dir=log_dir_path)
   cli_logger = tqdm(range(args.total_step), desc=f'loss: {0:.6f}', dynamic_ncols=True)
-
-  logger.info('Start training model.')
 
   step = 0
   avg_criterion_loss = 0.0
@@ -293,7 +270,7 @@ def main(argv: List[str]) -> None:
         avg_total_loss = avg_total_loss / args.log_step
 
         cli_logger.set_description(f'loss: {avg_total_loss:.6f}')
-        cli_logger.update()
+        cli_logger.update(args.log_step)
 
         writer.add_scalar('criterion_loss', avg_criterion_loss, step)
         writer.add_scalar('bmes_loss', avg_bmes_loss, step)

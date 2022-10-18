@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import pickle
@@ -25,26 +26,40 @@ def read_tensor_data(
   file_path = os.path.join(src.vars.PREPROCESS_DATA_PATH, pre_exp_name, file_name)
 
   logger.info(f'Start loading dataset {file_path}')
+
   tensor_data = pickle.load(open(file_path, 'rb'))
+  out_tensor_data = {
+    'input_ids': [],
+    'attention_mask': [],
+    'token_type_ids': [],
+    'answer': [],
+  }
+  for idx in range(len(tensor_data['input_ids'])):
+    out_tensor_data['input_ids'].append(torch.LongTensor(tensor_data['input_ids'][idx]))
+    out_tensor_data['attention_mask'].append(torch.LongTensor(tensor_data['attention_mask'][idx]))
+    out_tensor_data['token_type_ids'].append(torch.LongTensor(tensor_data['token_type_ids'][idx]))
+    out_tensor_data['answer'].append(torch.LongTensor(tensor_data['answer'][idx]))
+
   logger.info(f'Finish loading dataset {file_path}')
 
-  return tensor_data
+  return out_tensor_data
 
 
-class Dset(torch.utils.data.Dataset):
+class TrainDset(torch.utils.data.Dataset):
 
-  def __init__(self, dset_names: List[str], pre_exp_name: str, split: str, use_unc: bool):
-    assert split in ['train', 'dev', 'test']
+  def __init__(self, pre_exp_name: str, use_unc: bool):
     self.attention_mask: List[torch.Tensor] = []
     self.input_ids: List[torch.Tensor] = []
     self.token_type_ids: List[torch.Tensor] = []
     self.answer: List[torch.Tensor] = []
 
-    for dset_name in dset_names:
+    criterion_encode = json.load(open(os.path.join(src.vars.EXP_PATH, pre_exp_name, 'criterion_encode.json'), 'r'))
+
+    for dset_name in criterion_encode.keys():
       tensor_data = read_tensor_data(
         dset_name=dset_name,
         pre_exp_name=pre_exp_name,
-        split=split,
+        split='train',
         use_unc=False,
       )
       self.attention_mask.extend(tensor_data['attention_mask'])
@@ -58,13 +73,46 @@ class Dset(torch.utils.data.Dataset):
       tensor_data = read_tensor_data(
         dset_name=dset_name,
         pre_exp_name=pre_exp_name,
-        split=split,
+        split='train',
         use_unc=True,
       )
       self.attention_mask.extend(tensor_data['attention_mask'])
       self.input_ids.extend(tensor_data['input_ids'])
       self.token_type_ids.extend(tensor_data['token_type_ids'])
       self.answer.extend(tensor_data['answer'])
+
+  def __len__(self) -> int:
+    return len(self.input_ids)
+
+  def __getitem__(self, idx: int):
+    return (
+      self.attention_mask[idx],
+      self.input_ids[idx],
+      self.token_type_ids[idx],
+      self.answer[idx],
+    )
+
+
+class EvalDset(torch.utils.data.Dataset):
+
+  def __init__(self, dset_name: str, pre_exp_name: str, split: str, use_unc: bool):
+    assert split in ['train', 'dev', 'test']
+    self.attention_mask: List[torch.Tensor] = []
+    self.input_ids: List[torch.Tensor] = []
+    self.token_type_ids: List[torch.Tensor] = []
+    self.answer: List[torch.Tensor] = []
+
+    tensor_data = read_tensor_data(
+      dset_name=dset_name,
+      pre_exp_name=pre_exp_name,
+      split=split,
+      use_unc=use_unc,
+    )
+
+    self.attention_mask.extend(tensor_data['attention_mask'])
+    self.input_ids.extend(tensor_data['input_ids'])
+    self.token_type_ids.extend(tensor_data['token_type_ids'])
+    self.answer.extend(tensor_data['answer'])
 
   def __len__(self) -> int:
     return len(self.input_ids)

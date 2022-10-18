@@ -94,8 +94,8 @@ Tainan, Taiwan \\
   Recent researches for multi-criteria Chinese word segmentation (MCCWS) are mainly focus on improving SOTA F1-score.
   Existing works always manually choose a suitable labeling criterion when perform training and evaluation, but fail to do so when perform inference, i.e., when suitable labeling criterion is unknown.
   Hence, to make MCCWS model a practical tool, one need to decide how to choose a suitable labeling criterion.
-  In this work we show the need of criterion classification model and we proposed to use only one MCCWS model to automatically choose a suitable labeling criterion.
-  Experiments show that our MCCWS model has only minor F1-score degeneration (\(0.44\%\)) on average comparing to SOTA MCCWS model, meanwhile has the ability to choose criterion automatically and thus makes it practical.
+  In this work we show the need of additional criterion classification model and we proposed to use only one model to perform both word segmentation and choosing suitable labeling criterion.
+  Experiments show that our MCCWS model has only minor F1-score degeneration (\(0.44\%\)) on average comparing to SOTA MCCWS model, meanwhile has the ability to choose criterion automatically and thus makes our MCCWS model practical.
   % Further analysis show that labeling inconsistency inside a dataset can be found by our method.
   Code to reproduce all experiments and details of all hyperparameters are available on GitHub \footnote{\url{http://acl-org.github.io/ACLPUB/formatting.html}}.
 \end{abstract}
@@ -108,9 +108,9 @@ Tokenizers for these languages, on the other hand, segment character sequences i
 Thus, the need for Chinese word segmentation (CWS) tools is clear and CWS is still an on going research \citep{chen-etal-2017-adversarial,ma-etal-2018-state,He-2019-effective,Gong-2019-switch,huang-etal-2020-towards,huang-etal-2020-joint-multiple,ke2020unified,qiu-etal-2020-concise,ke-etal-2021-pre,tong-etal-2022-word}.
 
 At present, \(97\%\) or higher F1-scores on CWS datasets are mainly achieved with single model per dataset.
-But this means multiple model instances have to saved and can cost a lot of spaces.
+But this means multiple model instances have to be saved and can cost a lot of spaces.
 Therefore, it is ideal to use one model for all CWS datasets.
-However, explicit degeneration has been observed when sharing model across CWS datasets.
+However, explicit degeneration has been observed when sharing one model across CWS datasets.
 As point out first by \citep{chen-etal-2017-adversarial} and followed by many researches, the degeneration is mainly due to cross-dataset label inconsistency caused by different lingustic perspective.
 For example, Chinese names, in their written form, do not have space between first name and last name, and some datasets segment last names while others do not.
 For other example, consider idioms.
@@ -131,7 +131,7 @@ See Table~\ref{tab:label-inconsistency} for actual samples from datasets.
     CIT              & \TraCh{何樂而不為}     & BMMME           \\
     \hline
   \end{tabular}
-  \caption{Actual samples from different datasets \citep{emerson-2005-second} demostrate labeling inconsistency.
+  \caption{Actual samples from different datasets \citep{emerson-2005-second} demonstrate labeling inconsistency.
     Hyphen ``-'' denotes segmentation.
     Labels are defined in Section~\ref{sec:data}.
     Last name \SimCh{江} is segmented in PKU dataset but no in MSR dataset.
@@ -148,49 +148,49 @@ In this way, we can train on much larger text corpus to make a CWS model more ge
 Experiments show that MCCWS indeed perform better then CWS model without multi-criteria learning, and can achieve comparable performance compare to SOTA single model per dataset \citep{ke2020unified,ke-etal-2021-pre,tong-etal-2022-word}.
 
 Despite the effectiveness of MCCWS model, one problem remains for MCCWS model to be practical.
-When performing mulit-criteria learning on training sets or evaluation on test sets, one always know the pairing criterion for a given character sequence.
+When performing mulit-criteria learning on training sets or performing evaluation on test sets, one always know the pairing criterion for a given character sequence.
 However, when performing inference, one do not know the pairing criterion in advanced.
 This is not a problem when one know how to choose a criterion for a given character sequence.
 But this is a problem when one do not know how to choose a suitable criterion, especially for those without lingustic background.
 Hence, to make MCCWS models practical, one need to provide a way to choose a suitable criterion for a given character sequence.
 
 In this work, we proposed to jointly train an auxiliary text classification task together with multi-criteria learning.
-We show that with our MCCWS model can automatically choose a suitable criterion for a character sequence, meanwhile only sacrificing a little (\(0.44\%\)) F1-score performance on average.
+Our MCCWS model can automatically choose a suitable criterion for a character sequence, meanwhile only sacrificing a little (\(0.44\%\)) F1-score performance on average.
 %% TODO: add ablation description.
 
 \section{Related Works}\label{sec:related}
 
-Early works achieved \(95\%\) F1-score on SIGHAN bakeoff 2005 datasets \cite{emerson-2005-second}.
+Early works achieved \(95\%\) F1-score on SIGHAN bakeoff 2005 datasets \citep{emerson-2005-second}.
 Those works used either uni-directional or bi-directional recurrent neural networks \citep{Schuster-1997-bidirectional,graves-2005-framewise}, with or without conditional random field \citep{chen-etal-2017-adversarial,ma-etal-2018-state,He-2019-effective}.
-Features were in the style of lookup tables and advanced features like syntactic structures are not used.
-This is because one have syntactic structure only after words are defined, which happens only after CWS is performed.
+Features were in the style of lookup tables;
+advanced features like syntactic structures are not used.
+% This is because one have syntactic structure only after words are defined, which happens only after CWS is performed.
 Due to the recent advancement of large pre-trained language models, F1-score on CWS is now up to \(97\%\) \citep{huang-etal-2020-towards,huang-etal-2020-joint-multiple,ke2020unified,qiu-etal-2020-concise,ke-etal-2021-pre,tong-etal-2022-word}.
-Our experiments showed that by fine-tuning BERT \citep{devlin-etal-2019-bert} on single CWS dataset, \(97\%\) F1-score can be easily achieved.
+% Our experiments showed that by fine-tuning BERT~\citep{devlin-etal-2019-bert} on single CWS dataset, \(97\%\) F1-score can be easily achieved.
 
-As their are multiple CWS datasets with different labeling criterion, many researches start to propose MCCWS models.
+% As their are multiple CWS datasets with different labeling criterion, many researches start to propose MCCWS models.
 \citep{chen-etal-2017-adversarial} is the first to propose a MCCWS model with two sub-models, one is called shared model and the other is called private model.
 The shared model is trained to share common knowledge across CWS datasets, while the private model is aimed to learn criteria-specific knowledge.
 The shared model is trained under a adversarial setting, so that the criterion discriminator cannot reliably predict the criterion based on input sequence, thus failed to provide an automechanism for choosing suitable criterion.
 
-Following \citep{chen-etal-2017-adversarial}, many researches proposed different private models.
-In \citep{Gong-2019-switch}, they proposed switched-LSTMs which can dynamically route between multiple BiLSTMs to encode features.
-Thus remove the need for creating different private models for each CWS dataset.
-However \citep{Gong-2019-switch} removed the criterion classification task, so there is no way for switched-LSTMs to automatically choose a suitable criterion for the given sequence, and similarly for other MCCWS works with private model settings (\citep{huang-etal-2020-towards,qiu-etal-2020-concise}).
+Following \citep{chen-etal-2017-adversarial}, many different private models were proposed.
+\citep{Gong-2019-switch} proposed switched-LSTMs which can dynamically route between multiple BiLSTMs to encode features, thus remove the need for creating different private models for each CWS dataset.
+However, \citep{Gong-2019-switch} also removed the criterion classification task, so there is no way for switched-LSTMs to automatically choose a suitable criterion for the given sequence, and similarly for other MCCWS works with private model settings (\citep{huang-etal-2020-towards,qiu-etal-2020-concise}).
 
 Instead of using more and more complex private models, some proposed to make criterion as part of input and thus reduced the overall model complexity.
-\citep{He-2019-effective} proposed to add two artificial tokens at the begining and the end of input sentence which represent the labeling criterion, and then use BiLSTM to perform MCCWS.
-\citep{huang-etal-2020-joint-multiple} use the same two-artificial-token scheme, but use Transformer encoder \citep{vaswani-2017-attention} instead of BiLSTM.
+\citep{He-2019-effective} proposed to add two artificial tokens which represent the labeling criterion, and put them at the begining and the end of input sentence, and then use BiLSTM to perform MCCWS.
+\citep{huang-etal-2020-joint-multiple} do the same as \citep{He-2019-effective} but use Transformer encoder \citep{vaswani-2017-attention} instead of BiLSTM.
 \citep{ke-etal-2021-pre} also use Transformer encoder, but only one artifical token are added at the begining of input sentence.
-All the works just mentioned always manually assign criterion tokens, and therefore cannot automatically choose a suitable criterion for the given character sequence.
+These works always manually assign criterion tokens, and therefore cannot choose a suitable criterion automatically.
 
-In summary, previous researches on MCCWS either do not provide a way to choose a criterion, or always manually choose a criterion.
+In summary, previous researches on MCCWS either not provide a way to choose a criterion, or always manually choose a criterion.
 In our work, we proposed a simple yet ellgant way to make our MCCWS model automatically choose a suitable criterion for the given character sequence.
 
 \section{Methodology}
 
-In this section we describe the detail of our MCCWS model and the mechanism to make our model automatically choosing criterion.
+In this section we describe the detail of our MCCWS model and the mechanism to make our model capable of choosing criterion automatically.
 We first give a formal definition of CWS (Section~\ref{sec:data} and Section~\ref{sec:cws}), and then we formally define MCCWS model (Section~\ref{sec:mccws}).
-We will introduce an auxiliary classification model (Section~\ref{sec:class}) to help MCCWS choose criterion.
+After that, we introduce a criterion classification model (Section~\ref{sec:class}) to help MCCWS choose criterion.
 Finally, we show that we can jointly train one model instead of two to make our MCCWS model capable of choosing criterion automatically (Section~\ref{sec:auto}).
 
 \subsection{CWS Dataset}\label{sec:data}
@@ -207,10 +207,6 @@ If \(x_i\) is in a word with exactly \(2\) characters, then \(y_i \in \set{\BTag
 If \(x_i\) is in a word with more than \(2\) characters, then \(y_i \in \set{\BTag, \MTag, \ETag}\) where \(\MTag\) stands for ``the middle of a word''.
 See Table~\ref{tab:label-inconsistency} for examples.
 
-% Most of the times \(x\) is consist of entirely Chinese, with or without puncuations in between.
-% But sometimes \(x\) contains non-Chinese characters, and we do not consider any syntactic or semantic structure for these characters.
-% For example, English words are splitted into alphabet sequences.
-
 \subsection{CWS Model}\label{sec:cws}
 
 The goal of a CWS model with parameter \(\theta\) is to maximize the conditional probability \(\Pr(y | x ; \theta)\) for each \((x, y)\) in a CWS dataset \(D\).
@@ -223,7 +219,7 @@ To maximize the conditional probability \(\Pr(y | x ; \theta)\) with \(\theta\) 
 \begin{equation}\label{eq:2}
   \loss_{\opCWS}(D ; \theta) = \dfrac{-1}{\abs{D}} \sum_{(x, y) \in D} \log \Pr(y|x ; \theta).
 \end{equation}
-We will revise Equations~\eqref{eq:1}\eqref{eq:2} to create our MCCWS model.
+We will revise Equations~\eqref{eq:1}\eqref{eq:2} to define a MCCWS model.
 
 \subsection{MCCWS Model}\label{sec:mccws}
 
@@ -236,33 +232,32 @@ Thus, we change Equation~\eqref{eq:1} to make the conditional probability also d
 \begin{equation}\label{eq:3}
   \Pr(y | x, C^m ; \theta) = \prod_{i = 1}^{\abs{x}} \Pr(y_i | x, C^m ; \theta)
 \end{equation}
-Now let \(D = \bigcup_{m = 1}^M D^m\).
+Now let \(D\) be the union of all datasets, i.e., \(D = \bigcup_{m = 1}^M D^m\).
 Since we use \(M\) CWS datasets at the same time, we can treat \(M\) CWS dataset as one big CWS dataset \(D\) and minimize the average negative log-likelihood of \(y\) given \(x\) and the corresponding \(C^m\) of \(x\) over each \((x, y) \in D\).
-Hence, we change Equation~\eqref{eq:2} as follow:
+So Equation~\eqref{eq:2} is changed into:
 \begin{multline}\label{eq:4}
   \loss_{\opMCCWS}(D ; \theta) \\
   = \dfrac{-1}{\abs{D}} \sum_{m = 1}^M \sum_{(x, y) \in D^m} \log \Pr(y|x, C^m ; \theta).
 \end{multline}
-To perform inference, one only need give a MCCWS an input sequence \(x\) and a criterion \(C^m\), then one can use a decoding algorithm to get the prediction \(y\) given \(x\) and \(C^m\).
-For example, one can use greedy decoding algorithm as follow:
+To perform inference, one need to give a MCCWS model both an input sequence \(x\) and a criterion \(C^m\), then one can use greedy decoding to get the prediction \(y\) given \(x\) and \(C^m\):
 \begin{multline}\label{eq:5}
   y^* = \argmax_{y \in \TagSet^{\abs{x}}} \Pr(y | x, C^m ; \theta) \\
   = \argmax_{y_1, \dots, y_{\abs{x}} \in \TagSet} \prod_{i = 1}^{\abs{x}} \Pr(y_i | x, C^m ; \theta).
 \end{multline}
 The same optimization goal as in Equation~\eqref{eq:4} can be found in \citep{chen-etal-2017-adversarial,He-2019-effective,Gong-2019-switch,huang-etal-2020-towards,huang-etal-2020-joint-multiple,ke2020unified,qiu-etal-2020-concise,ke-etal-2021-pre}, and may written in the form of parameter \(\Theta^m\) when using private model or in the form of token \([m]\) when input together with character sequence (see Section~\ref{sec:related}).
-As we will demostrate in Section~\ref{sec:class}, using only Equation~\eqref{eq:4} to perform optimization cannot make a MCCWS model automatically choose a suitable labeling criterion for the given input \(x\), and thus make a MCCWS less practical.
+As we will demonstrate in Section~\ref{sec:class}, using only Equation~\eqref{eq:4} to perform optimization cannot make a MCCWS model automatically choose a suitable labeling criterion for the given input \(x\), and thus make a MCCWS less practical.
 
 \subsection{Auxiliary Classification Model}\label{sec:class}
 
 From the formulation in Equations~\eqref{eq:3}\eqref{eq:4}\eqref{eq:5} we see that one have to give a MCCWS model both an input character sequence \(x\) and a labeling criterion \(C^m\).
-Choosing criterion for training (Equation~\eqref{eq:4}) is not a problem because every input-output pair must come from a CWS dataset \(D^m\) for some \(1 \leq m \leq M\).
-And it is also not a problem for evaluation either (Equation~\eqref{eq:5}), because we can assume the train-test split of a CWS dataset \(D^m\) have the same distribution.
-It is a problem for inference (Equation~\eqref{eq:5}), however, since one do not know which dataset the given input is comming from.
+Choosing criterion for training (see Equation~\eqref{eq:4}) is not a problem because every input-output pair must come from a CWS dataset \(D^m\) for some \(1 \leq m \leq M\).
+And it is also not a problem for evaluation either (see Equation~\eqref{eq:5}), because we can assume the train-test split of a CWS dataset \(D^m\) have the same distribution.
+It is a problem for inference (see Equation~\eqref{eq:5}), however, since one do not know which dataset the given input is coming from.
 And it is this problem to make MCCWS almost practical.
 
 If one always know which \(C^m\) to use for arbitrary character sequence \(x\), then the problem is solved.
 Otherwise we need a tool to automatically choose \(C^m\) for a given \(x\).
-One can do this by training a dataset classification model which models the probability of \(x\) comming from dataset \(D^m\) with parameter \(\thetaC\).
+One can do this by training a dataset classification model which models the probability of \(x\) coming from dataset \(D^m\) with parameter \(\thetaC\).
 Again we use negative log-likelihood to optimize the dataset classification model:
 \begin{multline}\label{eq:6}
   \loss_{\opClass}(D, \thetaC) \\
@@ -273,7 +268,7 @@ After optimization, we can find the most possible dataset \(D^{m^*}\) for each c
   m^* = \argmax_{1 \leq m \leq M} \Pr(D^m | x ; \thetaC).
 \end{equation}
 Then we use the corresponding criterion \(C^{m^*}\) to perform inference as in Equation~\eqref{eq:5}.
-Thus one need to train two models (one for MCCWS and one for dataset classification) to provide an automechanism for choosing suitable criterion.
+Thus, one need to train two models (one for MCCWS and one for dataset classification) to provide an automechanism for choosing suitable criterion.
 In Section~\ref{sec:auto}, we proposed our MCCWS which can automatically choose criterion without auxiliary classification model.
 
 We note that optimization goal similar to Equation~\eqref{eq:6} can be found in \citep{chen-etal-2017-adversarial}.
@@ -284,17 +279,17 @@ Besides, our average F1 performance is \(1.8\%\) higher comparing to \citep{chen
 
 \begin{figure*}[t!]
   \center
-  \includegraphics[width=1.95\columnwidth]{./pic3.png}
-  \caption{Left: Using pre-trained BERT \citep{devlin-etal-2019-bert} to fine-tune on CWS task.
-    Right: Our MCCWS model.
-    Both models will receive character sequence as input and use the output of BERT encoder to predict the \(\TagSet\) for each position.
-    Both \CLS and \SEP are added only because of implmentation details and we do nothing on them.
-    In our MCCWS model, we add an unknown criterion token \UNC to the input and perform \(M\)-way classification where \(M\) is the number of different CWS datasets.
-    To manually choose a labeling criterion, one can replace \UNC with criteria-specific token \Ck{m} where \(1 \leq m \leq M\).}
+  \includegraphics[width=.5\columnwidth]{./pic2.png}
+  \caption{Our MCCWS model.
+    Models will receive both criterion token and character sequence as input.
+    The BERT encoder output are used to predict criterion and \(\TagSet\) for each position.
+    Both \CLS{} and \SEP{} are added only because of implmentation details and we do no perform further computation on them.
+    We add unknown criterion token \UNC{} to the input and perform \(M\)-way classification where \(M\) is the number of different CWS datasets.
+    To manually choose a labeling criterion, one can replace \UNC{} with criteria-specific token \Ck{m} where \(1 \leq m \leq M\).}
   \label{fig:1}
 \end{figure*}
 
-Since \(D^m\) is built from some text corpus following the labeling criterion \(C^m\), we can assume that modeling \(x\) following labeling criterion \(C^m\) is equivalent to modeling \(x\) comming from dataset \(D^m\).
+Since \(D^m\) is built from some text corpus following the labeling criterion \(C^m\), we can assume that modeling \(x\) following labeling criterion \(C^m\) is equivalent to modeling \(x\) coming from dataset \(D^m\).
 \begin{equation}\label{eq:8}
   \Pr(C^m | x ; \thetaC) = \Pr(D^m | x ; \thetaC).
 \end{equation}
@@ -317,13 +312,13 @@ Equation~\eqref{eq:11} is the keystone to make our MCCWS model capable of automa
 
 In practice, we use BERT~\citep{devlin-etal-2019-bert} as our MCCWS model \(\theta\) (see Figure~\ref{fig:1}).
 We define criteria-specific token \Ck{m} for each CWS dataset \(D^m\).
-We define another token \UNC which represents ``the unknown criterion''.
+We define another token \UNC which represents ``unknown criterion''.
 Each character sequence \(x\) is now paired with either its corresponding \Ck{m} or \UNC, but not both.
 The new sequence is then input to BERT (only one \(\theta\) is used).
 The BERT output of \(x\) is used to perform CWS.
 The BERT output of the paired token is used to perform criterion classification.
 If the paired token is \UNC, then perform criterion classification is equivalent to Equation~\eqref{eq:6}.
-If the paired token is \Ck{m}, then perform criterion classification is equivalent to identity mapping, and perform CWS is equivalent to perform MCCWS as Equation~\eqref{eq:4}.
+If the paired token is \Ck{m}, then perform criterion classification is equivalent to identity mapping, and perform CWS is equivalent to perform MCCWS as in Equation~\eqref{eq:4}.
 Under our setting, our MCCWS model can automatically choose a suitable criterion for the given input, meanwhile have the option to manually choose labeling criterion by case.
 
 % Our work in some way is similar to \citep{ke-etal-2021-pre}.
@@ -333,96 +328,151 @@ Under our setting, our MCCWS model can automatically choose a suitable criterion
 
 \section{Experiments}
 
-\begin{table}[ht]
+\begin{table}[t]
+  \caption{Dataset statistics for training, development and test sets.}
+  \label{tab:dset-stats}
   \centering
   \resizebox{1\columnwidth}{!}{
     \begin{tabular}{lccc}
-      \textbf{Corpus} & \textbf{\#Words in Train} & \textbf{\#Words in Dev} & \textbf{\#Words in Test} \\
+      \textbf{Corpus} & \textbf{\#Train Words} & \textbf{\#Dev Words} & \textbf{\#Test Words} \\
       \hline
-      AS              & 4.9M                      & 546K                    & 122K                     \\
-      CITYU           & 1.3M                      & 146K                    & 40K                      \\
-      CNC             & 5.8M                      & 727K                    & 726K                     \\
-      CTB6            & 678K                      & 51K                     & 52K                      \\
-      MSRA            & 2.1M                      & 234K                    & 106K                     \\
-      PKU             & 999K                      & 110K                    & 104K                     \\
-      SXU             & 475K                      & 52K                     & 113K                     \\
-      UD              & 98K                       & 12K                     & 12K                      \\
-      WTB             & 14K                       & 1K                      & 1K                       \\
-      ZX              & 67K                       & 20K                     & 67K                      \\
+      AS              & 4.9M                   & 546K                 & 122K                  \\
+      CITYU           & 1.3M                   & 146K                 & 40K                   \\
+      CNC             & 5.8M                   & 727K                 & 726K                  \\
+      MSRA            & 2.1M                   & 234K                 & 106K                  \\
+      PKU             & 999K                   & 110K                 & 104K                  \\
       \hline
     \end{tabular}
   }
-  \caption{Dataset statistics for training, development and test sets.}
-  \label{tab:dset-stats}
 \end{table}
+
+% \begin{table}[ht]
+%   \caption{Dataset statistics for training, development and test sets.}
+%   \label{tab:dset-stats}
+%   \centering
+%   % \resizebox{1\columnwidth}{!}{
+%   \begin{tabular}{lccc}
+%     \textbf{Corpus} & \textbf{\#Words in Train} & \textbf{\#Words in Dev} & \textbf{\#Words in Test} \\
+%     \hline
+%     AS              & 4.9M                      & 546K                    & 122K                     \\
+%     CITYU           & 1.3M                      & 146K                    & 40K                      \\
+%     CNC             & 5.8M                      & 727K                    & 726K                     \\
+%     CTB6            & 678K                      & 51K                     & 52K                      \\
+%     MSRA            & 2.1M                      & 234K                    & 106K                     \\
+%     PKU             & 999K                      & 110K                    & 104K                     \\
+%     SXU             & 475K                      & 52K                     & 113K                     \\
+%     UD              & 98K                       & 12K                     & 12K                      \\
+%     WTB             & 14K                       & 1K                      & 1K                       \\
+%     ZX              & 67K                       & 20K                     & 67K                      \\
+%     \hline
+%   \end{tabular}
+%   % }
+% \end{table}
 
 \subsection{Datasets and Experiments Setup}\label{sec:hps}
 
-We use four publicly available CWS datasets from SIGHAN2005 bakeoff \citep{emerson-2005-second}, including AS, CITYU, PKU and MSRA.
-Unfortunately, we are not able to access datasets from SIGHAN2008 bakeoff \citep{jin-chen-2008-fourth} since their website is currently down.
-We instead use another four publicly available datasets, including CNC\footnote{\url{http://corpus.zhonghuayuwen.org/}}, CTB6 \citep{xue-2015-ctb}, UD \citep{zeman-etal-2018-conll} and ZX \citep{zhang-etal-2014-type}.
-We use eight datasets in total (\(M = 8\)).
-% We instead use another five publicly available datasets, including CNC\footnote{\url{http://corpus.zhonghuayuwen.org/}}, CTB6 \citep{xue-2015-ctb}, UD \citep{zeman-etal-2018-conll}, WTB \citep{wang-etal-2014-dependency} and ZX \citep{zhang-etal-2014-type}.
-% We use \(10\) datasets in total (\(M = 10\)).
-
-For CNC, CTB6, UD and ZX, we use the official split of train, development and test sets.
+We use five publicly available CWS datasets, one is CNC\footnote{\url{http://corpus.zhonghuayuwen.org/}} and the others are from SIGHAN2005 bakeoff \cite{emerson-2005-second}, including AS, CITYU, PKU and MSRA.
+Only AS and CITYU are in traditional Chinese, the rest are in simplified Chinese.
+For CNC, we use the official split of train, development and test sets.
 For AS, CITYU, MSRA and PKU, we randomly pick \(10\%\) of data from training set as development set.
-Following \citep{cai-etal-2017-fast}, we convert consecutive digits and english characters into single token, while respecting spaces if there is any.
-We convert full-width characters into half-width characters.
-No conversion is made for traditional and simplified Chinese.
-On training set sentences are set to have maximum characters \(64\).
+Following \cite{cai-etal-2017-fast}, we first convert full-width characters into half-width characters, then we convert consecutive digits and english characters into single token, while respecting spaces if there is any.
+No conversion is made between traditional and simplified Chinese.
+On training set sentences are set to have at most \(64\) characters.
 On validation and test sets sentences are splited as training and then merge back to their original form after inference.
 Dataset statistics can be found in Table~\ref{tab:dset-stats}.
+
+% We use four publicly available CWS datasets from SIGHAN2005 bakeoff \cite{emerson-2005-second}, including AS, CITYU, PKU and MSRA.
+% Unfortunately, we are not able to access datasets from SIGHAN2008 bakeoff \cite{jin-chen-2008-fourth} since their website is currently down.
+% We instead use another four publicly available datasets, including CNC\footnote{\url{http://corpus.zhonghuayuwen.org/}}, CTB6 \cite{xue-2015-ctb}, UD \cite{zeman-etal-2018-conll} and ZX \cite{zhang-etal-2014-type}.
+% We use eight datasets in total (\(M = 8\)).
+% We instead use another five publicly available datasets, including CNC\footnote{\url{http://corpus.zhonghuayuwen.org/}}, CTB6 \cite{xue-2015-ctb}, UD \cite{zeman-etal-2018-conll}, WTB \cite{wang-etal-2014-dependency} and ZX \cite{zhang-etal-2014-type}.
+% We use \(10\) datasets in total (\(M = 10\)).
+
+% For CNC, CTB6, UD and ZX, we use the official split of train, development and test sets.
+% For AS, CITYU, MSRA and PKU, we randomly pick \(10\%\) of data from training set as development set.
+% Following \cite{cai-etal-2017-fast}, we convert consecutive digits and english characters into single token, while respecting spaces if there is any.
+% We convert full-width characters into half-width characters.
+% No conversion is made for traditional and simplified Chinese.
+% On training set sentences are set to have maximum characters \(64\).
+% On validation and test sets sentences are splited as training and then merge back to their original form after inference.
+% Dataset statistics can be found in Table~\ref{tab:dset-stats}.
 % For CNC, CTB6, UD, WTB and ZX, we use the official split of train, development and test sets.
 % For AS, CITYU, MSRA and PKU, we randomly pick \(10\%\) of data from training set as development set.
-% Following \citep{cai-etal-2017-fast}, we convert consecutive digits and english characters into single token, while respecting spaces if there are any.
+% Following \cite{cai-etal-2017-fast}, we convert consecutive digits and english characters into single token, while respecting spaces if there are any.
 % We convert full-width characters into half-width characters.
 % No conversion is made for traditional and simplified Chinese.
 % Dataset statistics can be found in Table~\ref{tab:dset-stats}.
 
-We use Pytorch \citep{paszke-etal-2019-pytorch} to implement our model.
-We fine-tune BERT with AdamW \citep{loshchilov2018decoupled} on the pre-trained checkpoint \texttt{bert-base-case}\footnote{\url{https://huggingface.co/bert-base-chinese}} provided by hugginface \citep{wolf2019huggingface}.
+We use Pytorch \cite{paszke-etal-2019-pytorch} to implement our model.
+We fine-tune BERT with AdamW \cite{loshchilov2018decoupled} on the pre-trained checkpoint \texttt{bert-base-case}\footnote{\url{https://huggingface.co/bert-base-chinese}} provided by hugginface \cite{wolf2019huggingface}.
 Moving average coefficients \((\beta_1, \beta_2)\) of AdamW is set to \((0.9, 0.999)\).
 Learning rate is set to \(2 \times 10^{-5}\) and weight decay coefficient is set to \(0.01\).
 We schedule learning rate with linear warmup and linear decay.
 Warmup ratio is set to \(0.1\).
-We set batch size to \(64\) and we update our MCCWS \(200000\) times (which gives warmup step \(20000\)).
+We set batch size to \(32\) and we update our MCCWS \(200000\) times (which gives warmup step \(20000\)).
 
 Each sample in a CWS dataset is paired with corresponding criteria-specific token \Ck{m}.
 We randomly replace \(50\%\) of \Ck{m} with \UNC.
-As in \citep{devlin-etal-2019-bert}, we added two linear layer with softmax on top of the BERT encoder output, one for computing \(\Pr(C^k | x ; \theta)\) and one for computing \(\Pr(y | x, C^k ; \theta)\).
+As in \cite{devlin-etal-2019-bert}, we added two linear layer with softmax on top of the BERT encoder output, one for computing \(\Pr(C^k | x ; \theta)\) and one for computing \(\Pr(y | x, C^k ; \theta)\).
 See Figure~\ref{fig:1} for model architecture.
 
 \subsection{Overall Results}
 
-\begin{table*}[ht]
-  \centering
-  \resizebox{2\columnwidth}{!}{
-    \begin{tabular}{lccccccccc}
-      \hline
-      \textbf{MCCWS Models}                                     & \textbf{AS}    & \textbf{CITYU} & \textbf{CNC}  & \textbf{CTB6}  & \textbf{MSRA} & \textbf{PKU}  & \textbf{UD}    & \textbf{ZX}   & \textbf{avg. in 5} \\
-      \hline
-      Model-I+ADV \citep{chen-etal-2017-adversarial}            & 94.64          & 95.55          & -             & 96.18          & 96.04         & 94.32         & -              & -             & 95.35              \\
-      \citep{He-2019-effective}                                 & 95.47          & 95.60          & -             & 95.84          & 97.35         & 95.78         & -              & -             & 96.01              \\
-      \citep{huang-etal-2020-joint-multiple}                    & -              & -              & 97.19         & 97.56          & 98.29         & 96.85         & 97.69          & -             & -                  \\
-      \citep{huang-etal-2020-towards}                           & 97.0           & 97.8           & \textbf{97.3} & 97.8           & \textbf{98.5} & \textbf{97.3} & 97.8           & \textbf{97.1} & \textbf{97.68}     \\
-      Unified Transformer Encoder \citep{qiu-etal-2020-concise} & 96.44          & 96.91          & -             & 96.99          & 98.05         & 96.41         & -              & -             & 96.96              \\
-      M{\small ETA}S{\small EG} \citep{ke-etal-2021-pre}        & \textbf{97.04} & \textbf{98.12} & 97.25         & \textbf{97.87} & 98.02         & 96.76         & 83.84          & 88.48         & 97.56              \\
-      \hline
-      \dag Ours                                                 & 96.61          & 97.77          & 97.07         & 97.62          & 97.54         & 96.65         & \textbf{97.86} & 96.87         & 97.24              \\
-      \ddag Ours + \UNC                                         & 96.56          & 97.28          & 96.67         & 96.92          & 94.45         & 95.44         & 97.33          & 96.23         & 96.13              \\
-      \hline
-    \end{tabular}
-  }
-  \caption{F1-score (in percentage) on all eight CWS datasets.
+\begin{table*}[t]
+  \caption{F1-score (in percentage) on all five CWS datasets.
     F1-scores other than ours are directly recorded from their papers.
-    Since not all researches use the same CWS datasets, we only report the average F1-score on five commonly used CWS datasets for fare comparison.
-    Five datasets include AS, CITYU, CTB6, MSRA and PKU.
     \dag: Manually choosing criterion-specific token for each input.
-    \ddag: Automatically choosing criterion-specific token for each input by giving \UNC.
+    \ddag: Automatically choosing criterion for each input by giving \UNC.
   }
   \label{tab:f1}
+  \centering
+  % \resizebox{1\columnwidth}{!}{
+  \begin{tabular}{lcccccccc}
+    \hline
+    \textbf{MCCWS Models}                                    & \textbf{AS}    & \textbf{CITYU} & \textbf{CNC}  & \textbf{MSRA} & \textbf{PKU}  & \textbf{Avg.}  \\
+    \hline
+    Model-I+ADV \cite{chen-etal-2017-adversarial}            & 94.64          & 95.55          & -             & 96.04         & 94.32         & 95.35          \\
+    \cite{He-2019-effective}                                 & 95.47          & 95.60          & -             & 97.35         & 95.78         & 96.01          \\
+    \cite{huang-etal-2020-joint-multiple}                    & -              & -              & 97.19         & 98.29         & 96.85         & -              \\
+    \cite{huang-etal-2020-towards}                           & 97.0           & 97.8           & \textbf{97.3} & \textbf{98.5} & \textbf{97.3} & \textbf{97.68} \\
+    Unified Transformer Encoder \cite{qiu-etal-2020-concise} & 96.44          & 96.91          & -             & 98.05         & 96.41         & 96.96          \\
+    M{\small ETA}S{\small EG} \cite{ke-etal-2021-pre}        & \textbf{97.04} & \textbf{98.12} & 97.25         & 98.02         & 96.76         & 97.56          \\
+    \hline
+    \dag Ours                                                & 96.61          & 97.77          & 97.07         & 97.54         & 96.65         & 97.24          \\
+    \ddag Ours + \UNC                                        & 96.56          & 97.28          & 96.67         & 94.45         & 95.44         & 96.13          \\
+    \hline
+  \end{tabular}
+  % }
 \end{table*}
+
+% \begin{table*}[ht]
+%   \caption{F1-score (in percentage) on all eight CWS datasets.
+%     F1-scores other than ours are directly recorded from their papers.
+%     Since not all researches use the same CWS datasets, we only report the average F1-score on five commonly used CWS datasets for fare comparison.
+%     Five datasets include AS, CITYU, CTB6, MSRA and PKU.
+%     \dag: Manually choosing criterion-specific token for each input.
+%     \ddag: Automatically choosing criterion for each input by giving \UNC.
+%   }
+%   \label{tab:f1}
+%   \centering
+%   \resizebox{1\columnwidth}{!}{
+%     \begin{tabular}{lccccccccc}
+%       \hline
+%       \textbf{MCCWS Models}                                    & \textbf{AS}    & \textbf{CITYU} & \textbf{CNC}  & \textbf{CTB6}  & \textbf{MSRA} & \textbf{PKU}  & \textbf{UD}    & \textbf{ZX}   & \textbf{avg. in 5} \\
+%       \hline
+%       Model-I+ADV \cite{chen-etal-2017-adversarial}            & 94.64          & 95.55          & -             & 96.18          & 96.04         & 94.32         & -              & -             & 95.35              \\
+%       \cite{He-2019-effective}                                 & 95.47          & 95.60          & -             & 95.84          & 97.35         & 95.78         & -              & -             & 96.01              \\
+%       \cite{huang-etal-2020-joint-multiple}                    & -              & -              & 97.19         & 97.56          & 98.29         & 96.85         & 97.69          & -             & -                  \\
+%       \cite{huang-etal-2020-towards}                           & 97.0           & 97.8           & \textbf{97.3} & 97.8           & \textbf{98.5} & \textbf{97.3} & 97.8           & \textbf{97.1} & \textbf{97.68}     \\
+%       Unified Transformer Encoder \cite{qiu-etal-2020-concise} & 96.44          & 96.91          & -             & 96.99          & 98.05         & 96.41         & -              & -             & 96.96              \\
+%       M{\small ETA}S{\small EG} \cite{ke-etal-2021-pre}        & \textbf{97.04} & \textbf{98.12} & 97.25         & \textbf{97.87} & 98.02         & 96.76         & 83.84          & 88.48         & 97.56              \\
+%       \hline
+%       \dag Ours                                                & 96.61          & 97.77          & 97.07         & 97.62          & 97.54         & 96.65         & \textbf{97.86} & 96.87         & 97.24              \\
+%       \ddag Ours + \UNC                                        & 96.56          & 97.28          & 96.67         & 96.92          & 94.45         & 95.44         & 97.33          & 96.23         & 96.13              \\
+%       \hline
+%     \end{tabular}
+%   }
+% \end{table*}
 
 % \begin{table*}[ht]
 %   \centering
@@ -431,13 +481,13 @@ See Figure~\ref{fig:1} for model architecture.
 %       \hline
 %       \textbf{Models}                                           & \textbf{AS} & \textbf{CITYU} & \textbf{CNC} & \textbf{CTB6} & \textbf{MSRA} & \textbf{PKU} & \textbf{SXU} & \textbf{UD} & \textbf{WTB} & \textbf{ZX} & \textbf{avg.} \\
 %       \hline
-%       Model-I+ADV \citep{chen-etal-2017-adversarial}            & 94.64       & 95.55          & -            & 96.18         & 96.04         & 94.32        & 96.04        & -           & -            & -           & 9             \\
-%       Model-II+ADV \citep{chen-etal-2017-adversarial}           & 94.75       & 95.50          & -            & 96.0          & 95.94         & 94.13        & 95.96        & -           & -            & -           & 9             \\
-%       Model-III+ADV \citep{chen-etal-2017-adversarial}          & 94.68       & 94.07          & -            & 96.1          & 95.87         & 94.25        & 96.14        & -           & -            & -           & 9             \\
-%       \citep{He-2019-effective}                                 & 95.47       & 95.60          & -            & 95.84         & 97.35         & 95.78        & 96.49        & -           & -            & -           & 9             \\
-%       \citep{huang-etal-2020-joint-multiple}                    & -           & -              & 97.19        & 97.56         & 98.29         & 96.85        & 97.56        & 97.69       & -            & -           & 9             \\
-%       \citep{huang-etal-2020-towards}                           & 97.0        & 97.8           & 97.3         & 97.8          & 98.5          & 97.3         & 97.5         & 97.8        & 93.2         & 97.1        & 9             \\
-%       Unified Transformer Encoder \citep{qiu-etal-2020-concise} & 96.44       & 96.91          & -            & 96.99         & 98.05         & 96.41        & 97.61        & -           & -            & -           & 9             \\
+%       Model-I+ADV \cite{chen-etal-2017-adversarial}            & 94.64       & 95.55          & -            & 96.18         & 96.04         & 94.32        & 96.04        & -           & -            & -           & 9             \\
+%       Model-II+ADV \cite{chen-etal-2017-adversarial}           & 94.75       & 95.50          & -            & 96.0          & 95.94         & 94.13        & 95.96        & -           & -            & -           & 9             \\
+%       Model-III+ADV \cite{chen-etal-2017-adversarial}          & 94.68       & 94.07          & -            & 96.1          & 95.87         & 94.25        & 96.14        & -           & -            & -           & 9             \\
+%       \cite{He-2019-effective}                                 & 95.47       & 95.60          & -            & 95.84         & 97.35         & 95.78        & 96.49        & -           & -            & -           & 9             \\
+%       \cite{huang-etal-2020-joint-multiple}                    & -           & -              & 97.19        & 97.56         & 98.29         & 96.85        & 97.56        & 97.69       & -            & -           & 9             \\
+%       \cite{huang-etal-2020-towards}                           & 97.0        & 97.8           & 97.3         & 97.8          & 98.5          & 97.3         & 97.5         & 97.8        & 93.2         & 97.1        & 9             \\
+%       Unified Transformer Encoder \cite{qiu-etal-2020-concise} & 96.44       & 96.91          & -            & 96.99         & 98.05         & 96.41        & 97.61        & -           & -            & -           & 9             \\
 %       M{\small ETA}S{\small EG} (w/o finte-tune)                & 97.04       & 98.12          & 97.25        & 97.87         & 98.02         & 96.76        & 97.51        & 83.84       & 89.53        & 88.48       & 9             \\
 %       M{\small ETA}S{\small EG}                                 & 97.01       & 98.20          & 97.55        & 97.89         & 98.50         & 96.92        & 97.88        & 98.57       & 93.97        & 97.22       & 9             \\
 %       \hline
@@ -448,16 +498,37 @@ See Figure~\ref{fig:1} for model architecture.
 % \end{table*}
 
 Table~\ref{tab:f1} shows the results of our experiments.
-Our MCCWS achieved \(97.24\%\) on average F1-score over five commonly used CWS datasets, which is only \(0.44\%\) less comparing to SOTA MCCWS model.
+Our MCCWS achieved \(97.24\%\) on average F1-score over five CWS datasets, which is only \(0.44\%\) less comparing to SOTA MCCWS model.
 We note that our MCCWS model is far simpler comparing to others, since we don't use CRF layer and any other handcrafted features.
-If we instead average F1-scores over all eights datasets, then our MCCWS achieved \(97.24\%\) and SOTA achieved \(97.57\%\), which makes our gap even smaller.
-This suggests our MCCWS model does not suffer from serious degeneration when jointly trained to perform criterion classification.
+% If we instead average F1-scores over all eights datasets, then our MCCWS achieved \(97.24\%\) and SOTA achieved \(97.57\%\), which makes our gap even smaller.
+% This suggests our MCCWS model does not suffer from serious degeneration when jointly trained to perform criterion classification.
 
-To demostrate the ability of automatically choosing suitable criterion for each character sequence, we give our MCCWS model \UNC to perform inference.
+To demonstrate the ability of automatically choosing suitable criterion for each character sequence, we give our MCCWS model \UNC{} to perform inference.
 Table~\ref{tab:f1} shows that under this setting we can achieve \(96.13\%\) F1-score on average which is only \(1.54\%\) less compare to SOTA MCCWS model.
 This suggests our MCCWS model is indeed a practical tool.
 
 \subsection{Ablation Study}
+
+\begin{table*}[t]
+  \caption{Accuracy}
+  \label{tab:acc}
+  \centering
+  % \resizebox{.7\columnwidth}{!}{
+  \begin{tabular}{lccccccc}
+    \hline
+                   & \textbf{AS} & \textbf{CITYU} & \textbf{CNC} & \textbf{MSRA} & \textbf{PKU} \\
+    \hline
+    \textbf{AS}    & 84.52       & 12.45          & 2.46         & 0.5           & 0.06         \\
+    \textbf{CITYU} & 42.34       & 53.01          & 2.28         & 2.22          & 0.15         \\
+    \textbf{CNC}   & 2.79        & 0.07           & 86.05        & 9.67          & 1.41         \\
+    \textbf{MSRA}  & 1.81        & 0.26           & 33.35        & 52.30         & 12.28        \\
+    \textbf{PKU}   & 2.19        & 0.34           & 27.69        & 54.36         & 15.41        \\
+    \hline
+  \end{tabular}
+  % }
+\end{table*}
+
+Table~\ref{tab:acc} show our criterion prediction accuracy.
 
 % Some intro to CWS.
 % (1) necessity for CWS.

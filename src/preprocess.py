@@ -18,6 +18,7 @@ r"""Text preprocess script.
 """
 
 import argparse
+import copy
 import distutils.util
 import json
 import logging
@@ -33,6 +34,7 @@ import transformers
 import src.utils.download_data
 import src.utils.rand
 import src.vars
+from src.vars import TAG_SET
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +43,6 @@ ALPHA_NORM_PTTN = re.compile(r'[A-Za-z_.]+')
 MIX_ALPHA_NUM_NORM_PTTN = re.compile(r'([0x]){2,}')
 SPLIT_PUNC_PTTN = re.compile(r'^[。！？：；…、，（）”’,;!?、,…]+$')
 NO_DEV_DSETS = ['as', 'cityu', 'msr', 'pku']
-TAG_SET = {'b': 0, 'e': 1, 'm': 2, 's': 3, 'pad': 4}
 
 
 def width_norm(sent: str) -> str:
@@ -89,7 +90,7 @@ def mix_alpha_norm(sent: str) -> str:
 
 
 def parse_args(argv: List[str]) -> argparse.Namespace:
-  parser = argparse.ArgumentParser('python -m src.utils.preprocess', description='Preprocess text.')
+  parser = argparse.ArgumentParser('python -m src.preprocess', description='Preprocess text.')
   parser.add_argument(
     '--dev_ratio',
     help='''
@@ -134,7 +135,7 @@ def parse_args(argv: List[str]) -> argparse.Namespace:
   parser.add_argument(
     '--use_dset',
     action='append',
-    choices=['as', 'cityu', 'ctb8', 'msr', 'pku', 'sxu', 'weibo'],
+    choices=src.vars.ALL_DSETS,
     help='Select datasets to preprocess.',
     required=True,
   )
@@ -178,12 +179,22 @@ def parse_args(argv: List[str]) -> argparse.Namespace:
     required=True,
     type=distutils.util.strtobool,
   )
+  parser.add_argument(
+    '--use_unc',
+    help='''
+    Whether to use [unc] tokens.
+    Set to `1` to use.
+    Set to `0` to not use.
+    ''',
+    required=True,
+    type=distutils.util.strtobool,
+  )
 
   args = parser.parse_args(argv)
 
-  # Ratio must between 0 and 1 but exclusive from both end points.
+  # Ratio must be between 0 and 1 but exclusive from both end points.
   if not (0.0 < args.dev_ratio < 1.0):
-    logger.error('Development splitting ratio must between 0 and 1 (exclusive).')
+    logger.error('Development splitting ratio must be between 0 and 1 (exclusive).')
     exit(0)
 
   # Must choose at least one dataset.
@@ -288,7 +299,12 @@ def split_sent_by_len(max_len: int, sents: List[str]) -> List[str]:
   return new_sents
 
 
-def load_tknzr(dset_names: List[str], exp_name: str, model_name: str) -> transformers.PreTrainedTokenizerBase:
+def load_tknzr(
+  dset_names: List[str],
+  exp_name: str,
+  model_name: str,
+  use_unc: bool,
+) -> transformers.PreTrainedTokenizerBase:
   if model_name == 'bert-base-chinese':
     cfg = transformers.BertConfig.from_pretrained(model_name)
     model = transformers.BertModel.from_pretrained(model_name)
@@ -299,6 +315,9 @@ def load_tknzr(dset_names: List[str], exp_name: str, model_name: str) -> transfo
   # Create criterion specific tokens.
   # Token are in the form [tk], for example: [as] and [pku].
   dset_tks = [f'[{dset_name}]' for dset_name in dset_names]
+
+  if use_unc:
+    dset_tks.append('[unc]')
 
   # Add criterion specific tokens to tokenizer and model.
   tknzr.add_special_tokens({'additional_special_tokens': dset_tks})
@@ -386,6 +405,17 @@ def write_tensor_data_to_file(exp_name: str, file_name: str, tensor_data: Dict[s
   logger.info(f'Finish writing to {out_pickle_file_path}.')
 
 
+def replace_with_unc(
+  tensor_data: Dict[str, List[torch.Tensor]],
+  tknzr: transformers.PreTrainedTokenizerBase,
+) -> Dict[str, List[torch.Tensor]]:
+  unc_tkid = tknzr.encode('[unc]')[0]
+  out_tensor_data = copy.deepcopy(tensor_data)
+  for idx in range(len(tensor_data['input_ids'])):
+    out_tensor_data['input_ids'][idx][1] = unc_tkid
+  return out_tensor_data
+
+
 def main(argv: List[str]) -> None:
   args = parse_args(argv=argv)
 
@@ -408,7 +438,12 @@ def main(argv: List[str]) -> None:
   src.utils.download_data.download_all()
 
   # Load tokenizer for preprocessing.
-  tknzr = load_tknzr(dset_names=args.use_dset, exp_name=args.exp_name, model_name=args.model_name)
+  tknzr = load_tknzr(
+    dset_names=args.use_dset,
+    exp_name=args.exp_name,
+    model_name=args.model_name,
+    use_unc=args.use_unc,
+  )
 
   norm_funcs = []
   if args.use_width_norm:
@@ -447,6 +482,27 @@ def main(argv: List[str]) -> None:
     write_tensor_data_to_file(exp_name=args.exp_name, file_name=f'{dset_name}_train.pkl', tensor_data=train_tensor_data)
     write_tensor_data_to_file(exp_name=args.exp_name, file_name=f'{dset_name}_dev.pkl', tensor_data=dev_tensor_data)
     write_tensor_data_to_file(exp_name=args.exp_name, file_name=f'{dset_name}_test.pkl', tensor_data=test_tensor_data)
+
+    if args.use_unc:
+      train_tensor_data = replace_with_unc(tensor_data=train_tensor_data, tknzr=tknzr)
+      dev_tensor_data = replace_with_unc(tensor_data=dev_tensor_data, tknzr=tknzr)
+      test_tensor_data = replace_with_unc(tensor_data=test_tensor_data, tknzr=tknzr)
+
+      write_tensor_data_to_file(
+        exp_name=args.exp_name,
+        file_name=f'{dset_name}_train.unc.pkl',
+        tensor_data=train_tensor_data,
+      )
+      write_tensor_data_to_file(
+        exp_name=args.exp_name,
+        file_name=f'{dset_name}_dev.unc.pkl',
+        tensor_data=dev_tensor_data,
+      )
+      write_tensor_data_to_file(
+        exp_name=args.exp_name,
+        file_name=f'{dset_name}_test.unc.pkl',
+        tensor_data=test_tensor_data,
+      )
 
 
 if __name__ == '__main__':

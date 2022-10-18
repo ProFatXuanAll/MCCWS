@@ -14,3 +14,9 @@ EXP_PATH: Final[str] = os.path.join(PROJECT_ROOT, 'exp')
 
 # Log related path.
 LOG_PATH: Final[str] = os.path.join(PROJECT_ROOT, 'log')
+
+# BMES tagset.
+TAG_SET = {'b': 0, 'e': 1, 'm': 2, 's': 3, 'pad': 4}
+
+# Supported datasets.
+ALL_DSETS = ['as', 'cityu', 'ctb8', 'msr', 'pku', 'sxu', 'weibo']

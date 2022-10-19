@@ -197,12 +197,12 @@ def parse_args(argv: List[str]) -> argparse.Namespace:
   # Ratio must be between 0 and 1 but exclusive from both end points.
   if not (0.0 < args.dev_ratio < 1.0):
     logger.error('Development splitting ratio must be between 0 and 1 (exclusive).')
-    exit(0)
+    exit(1)
 
   # Must choose at least one dataset.
   if not args.use_dset:
     logger.error('Must choose at least one dataset.')
-    exit(0)
+    exit(1)
   args.use_dset.sort()
 
   # Must be both true or false.
@@ -212,10 +212,10 @@ def parse_args(argv: List[str]) -> argparse.Namespace:
     logger.warning('Full width alphabets are not normalized.')
   if args.use_mix_alpha_num_norm and not args.use_num_norm:
     logger.error('Alphanumerics are normalized only after digits are normalized.')
-    exit(0)
+    exit(1)
   if args.use_mix_alpha_num_norm and not args.use_alpha_norm:
     logger.error('Alphanumerics are normalized only after alphabets are normalized.')
-    exit(0)
+    exit(1)
 
   return args
 

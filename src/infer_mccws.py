@@ -57,13 +57,13 @@ def parse_args(argv: List[str]) -> argparse.Namespace:
   )
   parser.add_argument(
     '--first_ckpt',
-    help='First checkpoint to be evaluated.',
+    help='First checkpoint to inference.',
     required=True,
     type=int,
   )
   parser.add_argument(
     '--last_ckpt',
-    help='Last checkpoint to be evaluated.',
+    help='Last checkpoint to inference.',
     required=True,
     type=int,
   )
@@ -102,11 +102,11 @@ def parse_args(argv: List[str]) -> argparse.Namespace:
   # Checkpoints must be positive.
   if args.first_ckpt <= 0 or args.last_ckpt <= 0:
     logger.error('Steps must be positive.')
-    exit(0)
+    exit(1)
   # First checkpoint must be less than the last checkpoint step.
   if args.first_ckpt > args.last_ckpt:
     logger.error('Warmup step must be less than total step')
-    exit(0)
+    exit(1)
 
   return args
 
@@ -122,7 +122,7 @@ def main(argv: List[str]) -> None:
   log_dir_path = os.path.join(src.vars.LOG_PATH, args.exp_name)
   if not os.path.exists(model_exp_dir_path):
     logger.error(f'Experiment {args.exp_name} does not exist.')
-    exit(0)
+    exit(1)
   if not os.path.exists(infer_exp_dir_path):
     os.makedirs(infer_exp_dir_path)
   if not os.path.exists(log_dir_path):

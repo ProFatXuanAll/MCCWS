@@ -141,19 +141,19 @@ def parse_args(argv: List[str]) -> argparse.Namespace:
   # Learning rate must be between 0 and 1 but exclusive from both end points.
   if not (0.0 < args.lr < 1.0):
     logger.error('Learning rate must be between 0 and 1 (exclusive).')
-    exit(0)
+    exit(1)
   # Dropout probability must be between 0 and 1.
   if not (0.0 <= args.p_drop <= 1.0):
     logger.error('Dropout probability must be between 0 and 1 (inclusive).')
-    exit(0)
+    exit(1)
   # Steps must be positive.
   if args.warmup_step <= 0 or args.total_step <= 0 or args.ckpt_step <= 0 or args.log_step <= 0:
     logger.error('Steps must be positive.')
-    exit(0)
+    exit(1)
   # Warmup step must be less than total step.
   if args.warmup_step > args.total_step:
     logger.error('Warmup step must be less than total step')
-    exit(0)
+    exit(1)
 
   return args
 

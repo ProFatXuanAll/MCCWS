@@ -122,10 +122,10 @@ See Table~\ref{tab:label-inconsistency} for actual samples from datasets.
   \centering
   \begin{tabular}{lll}
     \hline
-    \textbf{Dataset} & \textbf{Samples}  & \textbf{Labels} \\
+    \textbf{Dataset} & \textbf{Samples}       & \textbf{Labels} \\
     \hline
-    PKU              & \SimCh{江-泽民}      & S-BE            \\
-    MSR              & \SimCh{江泽民}       & BME             \\
+    PKU              & \SimCh{江-泽民}        & S-BE            \\
+    MSR              & \SimCh{江泽民}         & BME             \\
     \hline
     AS               & \TraCh{何-樂-而-不-為} & S-S-S-S-S       \\
     CIT              & \TraCh{何樂而不為}     & BMMME           \\
@@ -377,7 +377,7 @@ For CNC, we use the official split of train, development and test sets.
 For AS, CITYU, MSRA and PKU, we randomly pick \(10\%\) of data from training set as development set.
 Following \cite{cai-etal-2017-fast}, we first convert full-width characters into half-width characters, then we convert consecutive digits and english characters into single token, while respecting spaces if there is any.
 No conversion is made between traditional and simplified Chinese.
-On training set sentences are set to have at most \(64\) characters.
+On training set sentences are set to have at most \(512\) characters.
 On validation and test sets sentences are splited as training and then merge back to their original form after inference.
 Dataset statistics can be found in Table~\ref{tab:dset-stats}.
 
@@ -409,7 +409,8 @@ Moving average coefficients \((\beta_1, \beta_2)\) of AdamW is set to \((0.9, 0.
 Learning rate is set to \(2 \times 10^{-5}\) and weight decay coefficient is set to \(0.01\).
 We schedule learning rate with linear warmup and linear decay.
 Warmup ratio is set to \(0.1\).
-We set batch size to \(32\) and we update our MCCWS \(200000\) times (which gives warmup step \(20000\)).
+We set batch size to \(32\) and we update our MCCWS \(250000\) times.
+Then we pick the checkpoint with the highest F1 on development set to calculate test set F1.
 
 Each sample in a CWS dataset is paired with corresponding criteria-specific token \Ck{m}.
 We randomly replace \(50\%\) of \Ck{m} with \UNC.
@@ -438,8 +439,8 @@ See Figure~\ref{fig:1} for model architecture.
     Unified Transformer Encoder \cite{qiu-etal-2020-concise} & 96.44          & 96.91          & -             & 98.05         & 96.41         & 96.96          \\
     M{\small ETA}S{\small EG} \cite{ke-etal-2021-pre}        & \textbf{97.04} & \textbf{98.12} & 97.25         & 98.02         & 96.76         & 97.56          \\
     \hline
-    \dag Ours                                                & 96.61          & 97.77          & 97.07         & 97.54         & 96.65         & 97.24          \\
-    \ddag Ours + \UNC                                        & 96.56          & 97.28          & 96.67         & 94.45         & 95.44         & 96.13          \\
+    \dag Ours                                                & 96.60          & 97.85          & 97.29         & 97.92         & 96.84         & 97.30          \\
+    \ddag Ours + \UNC                                        & 96.55          & 97.71          & 96.91         & 95.33         & 95.26         & 96.35          \\
     \hline
   \end{tabular}
   % }
@@ -510,7 +511,7 @@ This suggests our MCCWS model is indeed a practical tool.
 \subsection{Ablation Study}
 
 \begin{table*}[t]
-  \caption{Accuracy}
+  \caption{UNC prediction accuracy.}
   \label{tab:acc}
   \centering
   % \resizebox{.7\columnwidth}{!}{
@@ -518,11 +519,11 @@ This suggests our MCCWS model is indeed a practical tool.
     \hline
                    & \textbf{AS} & \textbf{CITYU} & \textbf{CNC} & \textbf{MSRA} & \textbf{PKU} \\
     \hline
-    \textbf{AS}    & 84.52       & 12.45          & 2.46         & 0.5           & 0.06         \\
-    \textbf{CITYU} & 42.34       & 53.01          & 2.28         & 2.22          & 0.15         \\
-    \textbf{CNC}   & 2.79        & 0.07           & 86.05        & 9.67          & 1.41         \\
-    \textbf{MSRA}  & 1.81        & 0.26           & 33.35        & 52.30         & 12.28        \\
-    \textbf{PKU}   & 2.19        & 0.34           & 27.69        & 54.36         & 15.41        \\
+    \textbf{AS}    & 99.27       & 5.69           & 0.18         & 0.40          & 0.05         \\
+    \textbf{CITYU} & 0.69        & 94.17          & 0.01         & 0.05          & 0.15         \\
+    \textbf{CNC}   & 0.0         & 0.0            & 94.29        & 27.55         & 8.78         \\
+    \textbf{MSRA}  & 0.0         & 0.0            & 5.41         & 63.09         & 21.29        \\
+    \textbf{PKU}   & 0.03        & 0.13           & 0.12         & 8.91          & 69.73        \\
     \hline
   \end{tabular}
   % }

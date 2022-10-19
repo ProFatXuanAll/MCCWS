@@ -35,15 +35,11 @@ from tqdm import tqdm
 
 import src.dset
 import src.model
+import src.utils.model
 import src.utils.rand
 import src.vars
 
 logger = logging.getLogger(__name__)
-
-
-def save_model(step: int, exp_name: str, model: torch.nn.Module) -> None:
-  file_path = os.path.join(src.vars.EXP_PATH, exp_name, f'model-{step}.pt')
-  torch.save(model, file_path)
 
 
 def parse_args(argv: List[str]) -> argparse.Namespace:
@@ -262,7 +258,7 @@ def main(argv: List[str]) -> None:
       step += 1
 
       if step % args.ckpt_step == 0:
-        save_model(step=step, exp_name=args.exp_name, model=model)
+        src.utils.model.save_model(step=step, exp_name=args.exp_name, model=model)
 
       if step % args.log_step == 0:
         avg_criterion_loss = avg_criterion_loss / args.log_step
@@ -283,7 +279,7 @@ def main(argv: List[str]) -> None:
       if step >= args.total_step:
         break
 
-  save_model(step=step, exp_name=args.exp_name, model=model)
+  src.utils.model.save_model(step=step, exp_name=args.exp_name, model=model)
   writer.flush()
   writer.close()
   cli_logger.close()

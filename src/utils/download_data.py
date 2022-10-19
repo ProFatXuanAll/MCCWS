@@ -265,14 +265,14 @@ def download_CTB8() -> None:
   tarfile.open(os.path.join(src.vars.DOWNLOAD_DATA_PATH, 'LDC2013T21.tgz'), 'r').extractall(src.vars.DOWNLOAD_DATA_PATH)
   data_folder_path = os.path.join(src.vars.DOWNLOAD_DATA_PATH, 'ctb8.0', 'data', 'segmented')
 
-  output_train_txt_file = open(os.path.join(src.vars.RAW_DATA_PATH, 'ctb8_train.txt'), 'w')
-  output_test_txt_file = open(os.path.join(src.vars.RAW_DATA_PATH, 'ctb8_test.txt'), 'w')
+  output_train_txt_file = open(os.path.join(src.vars.RAW_DATA_PATH, 'ctb8_train.txt'), 'w', encoding='utf-8')
+  output_test_txt_file = open(os.path.join(src.vars.RAW_DATA_PATH, 'ctb8_test.txt'), 'w', encoding='utf-8')
 
   for input_file_name in sorted(os.listdir(data_folder_path)):
     logger.info(f'Start extracting {input_file_name}.')
 
     file_id = int(re.match(r'chtb_(\d{4})', input_file_name)[1])
-    input_txt_file = open(os.path.join(data_folder_path, input_file_name), 'r')
+    input_txt_file = open(os.path.join(data_folder_path, input_file_name), 'r', encoding='utf-8')
     raw_xml = input_txt_file.read()
     input_txt_file.close()
 

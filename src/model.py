@@ -19,7 +19,7 @@ class WithCriterion(nn.Module):
     self.encoder = transformers.BertModel.from_pretrained(model_name)
     cfg = transformers.BertConfig.from_pretrained(model_name)
 
-    self.criterion_encode = json.load(open(os.path.join(model_name, 'criterion_encode.json'), 'r'))
+    self.criterion_encode = json.load(open(os.path.join(model_name, 'criterion_encode.json'), 'r', encoding='utf-8'))
     self.n_tags = len(src.vars.TAG_SET)
     self.n_dsets = len(self.criterion_encode)
 

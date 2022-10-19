@@ -223,7 +223,7 @@ def parse_args(argv: List[str]) -> argparse.Namespace:
 def read_sents_from_file(file_name: str, norm_funcs: List[Callable[[str], str]]) -> List[str]:
   logger.info(f'Start reading from {file_name}.')
 
-  input_txt_file = open(os.path.join(src.vars.RAW_DATA_PATH, file_name), 'r')
+  input_txt_file = open(os.path.join(src.vars.RAW_DATA_PATH, file_name), 'r', encoding='utf-8')
   lines = input_txt_file.readlines()
   input_txt_file.close()
 
@@ -275,7 +275,7 @@ def write_sents_to_file(exp_name: str, file_name: str, sents: List[str]) -> None
   if os.path.exists(out_txt_file_path):
     logger.warning(f'Overwritting existing file: {out_txt_file_path}')
 
-  with open(out_txt_file_path, 'w') as out_txt_file:
+  with open(out_txt_file_path, 'w', encoding='utf-8') as out_txt_file:
     for sent in sents:
       out_txt_file.write(f'{sent}\n')
 

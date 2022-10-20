@@ -107,8 +107,8 @@ def download_SIGHAN_2005_bakeoff() -> None:
   ]
 
   is_all_file_extracted = True
-  for _, output_txt_file_name in txt_file_mapping:
-    if not os.path.exists(os.path.join(src.vars.RAW_DATA_PATH, output_txt_file_name)):
+  for _, out_txt_file_name in txt_file_mapping:
+    if not os.path.exists(os.path.join(src.vars.RAW_DATA_PATH, out_txt_file_name)):
       is_all_file_extracted = False
       break
 
@@ -119,15 +119,15 @@ def download_SIGHAN_2005_bakeoff() -> None:
   logger.info('Start extracting raw data.')
 
   with zipfile.ZipFile(os.path.join(src.vars.DOWNLOAD_DATA_PATH, 'icwb2-data.zip'), 'r') as input_zipfile:
-    for input_txt_file_path, output_txt_file_name in txt_file_mapping:
-      logger.info(f'Start extracting {output_txt_file_name}.')
+    for in_txt_file_path, out_txt_file_name in txt_file_mapping:
+      logger.info(f'Start extracting {out_txt_file_name}.')
 
-      with io.TextIOWrapper(input_zipfile.open(input_txt_file_path, 'r'), encoding='utf-8') as input_txt_file:
-        data = input_txt_file.read()
-        with open(os.path.join(src.vars.RAW_DATA_PATH, output_txt_file_name), 'w', encoding='utf-8') as output_txt_file:
-          output_txt_file.write(data)
+      with io.TextIOWrapper(input_zipfile.open(in_txt_file_path, 'r'), encoding='utf-8') as in_txt_file:
+        data = in_txt_file.read()
+        with open(os.path.join(src.vars.RAW_DATA_PATH, out_txt_file_name), 'w', encoding='utf-8') as out_txt_file:
+          out_txt_file.write(data)
 
-      logger.info(f'Finish extracting {output_txt_file_name}.')
+      logger.info(f'Finish extracting {out_txt_file_name}.')
 
   logger.info('Finish extracting raw data.')
 
@@ -163,8 +163,8 @@ def download_NLPCC_2016_Weibo() -> None:
   ]
 
   is_all_file_renamed = True
-  for _, output_txt_file_name in txt_file_mapping:
-    if not os.path.exists(os.path.join(src.vars.RAW_DATA_PATH, output_txt_file_name)):
+  for _, out_txt_file_name in txt_file_mapping:
+    if not os.path.exists(os.path.join(src.vars.RAW_DATA_PATH, out_txt_file_name)):
       is_all_file_renamed = False
       break
 
@@ -173,13 +173,13 @@ def download_NLPCC_2016_Weibo() -> None:
     return
 
   logger.info('Start renaming raw data.')
-  for input_txt_file_name, output_txt_file_name in txt_file_mapping:
-    logger.info(f'Start renaming {output_txt_file_name}.')
-    with open(os.path.join(src.vars.DOWNLOAD_DATA_PATH, input_txt_file_name), 'r', encoding='utf-8') as input_txt_file:
-      data = input_txt_file.read()
-      with open(os.path.join(src.vars.RAW_DATA_PATH, output_txt_file_name), 'w', encoding='utf-8') as output_txt_file:
-        output_txt_file.write(data)
-    logger.info(f'Finish renaming {output_txt_file_name}.')
+  for in_txt_file_name, out_txt_file_name in txt_file_mapping:
+    logger.info(f'Start renaming {out_txt_file_name}.')
+    with open(os.path.join(src.vars.DOWNLOAD_DATA_PATH, in_txt_file_name), 'r', encoding='utf-8') as in_txt_file:
+      data = in_txt_file.read()
+      with open(os.path.join(src.vars.RAW_DATA_PATH, out_txt_file_name), 'w', encoding='utf-8') as out_txt_file:
+        out_txt_file.write(data)
+    logger.info(f'Finish renaming {out_txt_file_name}.')
   logger.info('Finish renaming raw data.')
 
 
@@ -205,8 +205,8 @@ def download_SIGHAN_2008_bakeoff_SXU() -> None:
   ]
 
   is_all_file_extracted = True
-  for _, output_txt_file_name in txt_file_mapping:
-    if not os.path.exists(os.path.join(src.vars.RAW_DATA_PATH, output_txt_file_name)):
+  for _, out_txt_file_name in txt_file_mapping:
+    if not os.path.exists(os.path.join(src.vars.RAW_DATA_PATH, out_txt_file_name)):
       is_all_file_extracted = False
       break
 
@@ -217,15 +217,15 @@ def download_SIGHAN_2008_bakeoff_SXU() -> None:
   logger.info('Start extracting raw data.')
 
   pyunpack.Archive(os.path.join(src.vars.DOWNLOAD_DATA_PATH, 'backoff2008.rar')).extractall(src.vars.DOWNLOAD_DATA_PATH)
-  for input_txt_file_path, output_txt_file_name in txt_file_mapping:
-    logger.info(f'Start renaming {output_txt_file_name}.')
+  for in_txt_file_path, out_txt_file_name in txt_file_mapping:
+    logger.info(f'Start renaming {out_txt_file_name}.')
 
-    with open(os.path.join(src.vars.DOWNLOAD_DATA_PATH, input_txt_file_path), 'r', encoding='utf-16') as input_txt_file:
-      data = input_txt_file.read()
-      with open(os.path.join(src.vars.RAW_DATA_PATH, output_txt_file_name), 'w', encoding='utf-8') as output_txt_file:
-        output_txt_file.write(data)
+    with open(os.path.join(src.vars.DOWNLOAD_DATA_PATH, in_txt_file_path), 'r', encoding='utf-16') as in_txt_file:
+      data = in_txt_file.read()
+      with open(os.path.join(src.vars.RAW_DATA_PATH, out_txt_file_name), 'w', encoding='utf-8') as out_txt_file:
+        out_txt_file.write(data)
 
-    logger.info(f'Finish renaming {output_txt_file_name}.')
+    logger.info(f'Finish renaming {out_txt_file_name}.')
 
   shutil.rmtree(os.path.join(src.vars.DOWNLOAD_DATA_PATH, '中文分词评测测试+训练语料'))
   logger.info('Finish extracting raw data.')
@@ -250,8 +250,8 @@ def download_CTB8() -> None:
   ]
 
   is_all_file_extracted = True
-  for output_txt_file_name in ['ctb8_train.txt', 'ctb8_test.txt']:
-    if not os.path.exists(os.path.join(src.vars.RAW_DATA_PATH, output_txt_file_name)):
+  for out_txt_file_name in ['ctb8_train.txt', 'ctb8_test.txt']:
+    if not os.path.exists(os.path.join(src.vars.RAW_DATA_PATH, out_txt_file_name)):
       is_all_file_extracted = False
       break
 
@@ -272,9 +272,9 @@ def download_CTB8() -> None:
     logger.info(f'Start extracting {input_file_name}.')
 
     file_id = int(re.match(r'chtb_(\d{4})', input_file_name)[1])
-    input_txt_file = open(os.path.join(data_folder_path, input_file_name), 'r', encoding='utf-8')
-    raw_xml = input_txt_file.read()
-    input_txt_file.close()
+    in_txt_file = open(os.path.join(data_folder_path, input_file_name), 'r', encoding='utf-8')
+    raw_xml = in_txt_file.read()
+    in_txt_file.close()
 
     # Remove XML tags.
     # We do not use XML parser since some data is not valid XML.
@@ -338,6 +338,224 @@ def download_CTB8() -> None:
   logger.info('Finish extracting raw data.')
 
 
+def download_CNC() -> None:
+  """Download CNC dataset.
+
+  We download from hankcs.
+  Source: https://github.com/hankcs/multi-criteria-cws/tree/master/data/other
+  """
+  # Download dataset.
+  download_file(
+    desc='downloading CNC training set',
+    download_file_name='cnc_train.txt',
+    url='https://raw.githubusercontent.com/hankcs/multi-criteria-cws/master/data/other/cnc/train.txt',
+  )
+  download_file(
+    desc='downloading CNC dev set',
+    download_file_name='cnc_dev.txt',
+    url='https://raw.githubusercontent.com/hankcs/multi-criteria-cws/master/data/other/cnc/dev.txt',
+  )
+  download_file(
+    desc='downloading CNC test set',
+    download_file_name='cnc_test.txt',
+    url='https://raw.githubusercontent.com/hankcs/multi-criteria-cws/master/data/other/cnc/test.txt',
+  )
+
+  is_all_file_copied = True
+  for split in ['train', 'dev', 'test']:
+    if not os.path.exists(os.path.join(src.vars.RAW_DATA_PATH, f'cnc_{split}.txt')):
+      is_all_file_copied = False
+      break
+
+  if is_all_file_copied:
+    logger.info('Skip parsing raw data: CNC raw data are already parsed.')
+    return
+
+  logger.info('Start parsing raw data.')
+  for split in ['train', 'dev', 'test']:
+    logger.info(f'Start parsing cnc_{split}.txt.')
+    with open(os.path.join(src.vars.DOWNLOAD_DATA_PATH, f'cnc_{split}.txt'), 'r', encoding='utf-8') as in_txt_file:
+      lines = in_txt_file.readlines()
+    with open(os.path.join(src.vars.RAW_DATA_PATH, f'cnc_{split}.txt'), 'w', encoding='utf-8') as out_txt_file:
+      for line in lines:
+        words = []
+        for word_with_pos in re.split(r'\s+', line.strip()):
+          word = re.sub(r'/[a-z]+$', r'', word_with_pos)
+          words.append(word)
+        sent = ' '.join(words)
+        out_txt_file.write(f'{sent}\n')
+    logger.info(f'Finish parsing cnc_{split}.txt.')
+  logger.info('Finish parsing raw data.')
+
+
+def download_UD() -> None:
+  """Download Universal Dependency dataset.
+
+  We download from  hankcs.
+  Source: https://github.com/hankcs/multi-criteria-cws/tree/master/data/other
+  """
+  # Download dataset.
+  download_file(
+    desc='downloading UD training set',
+    download_file_name='ud_train.conll',
+    url='https://raw.githubusercontent.com/hankcs/multi-criteria-cws/master/data/other/udc/train.conll',
+  )
+  download_file(
+    desc='downloading UD dev set',
+    download_file_name='ud_dev.conll',
+    url='https://raw.githubusercontent.com/hankcs/multi-criteria-cws/master/data/other/udc/dev.conll',
+  )
+  download_file(
+    desc='downloading UD test set',
+    download_file_name='ud_test.conll',
+    url='https://raw.githubusercontent.com/hankcs/multi-criteria-cws/master/data/other/udc/test.conll',
+  )
+
+  is_all_file_copied = True
+  for split in ['train', 'dev', 'test']:
+    if not os.path.exists(os.path.join(src.vars.RAW_DATA_PATH, f'ud_{split}.txt')):
+      is_all_file_copied = False
+      break
+
+  if is_all_file_copied:
+    logger.info('Skip parsing raw data: UD raw data are already parsed.')
+    return
+
+  logger.info('Start parsing raw data.')
+  for split in ['train', 'dev', 'test']:
+    logger.info(f'Start parsing ud_{split}.conll.')
+    with open(os.path.join(src.vars.DOWNLOAD_DATA_PATH, f'ud_{split}.conll'), 'r', encoding='utf-8') as in_txt_file:
+      lines = in_txt_file.readlines()
+    with open(os.path.join(src.vars.RAW_DATA_PATH, f'ud_{split}.txt'), 'w', encoding='utf-8') as out_txt_file:
+      words = []
+      for line in lines:
+        line = line.strip()
+        # Sentence are separated by empty line.
+        if not line and words:
+          sent = ' '.join(words)
+          out_txt_file.write(f'{sent}\n')
+          words = []
+        else:
+          word = re.split(r'\s+', line)[1]
+          words.append(word)
+
+      if words:
+        sent = ' '.join(words)
+        out_txt_file.write(f'{sent}\n')
+    logger.info(f'Finish parsing ud_{split}.conll.')
+  logger.info('Finish parsing raw data.')
+
+
+def download_WTB() -> None:
+  """Download WTB dataset.
+
+  We download from hankcs.
+  Source: https://github.com/hankcs/multi-criteria-cws/tree/master/data/other
+  """
+  # Download dataset.
+  download_file(
+    desc='downloading WTB training set',
+    download_file_name='wtb_train.conll',
+    url='https://raw.githubusercontent.com/hankcs/multi-criteria-cws/master/data/other/wtb/train.conll',
+  )
+  download_file(
+    desc='downloading WTB dev set',
+    download_file_name='wtb_dev.conll',
+    url='https://raw.githubusercontent.com/hankcs/multi-criteria-cws/master/data/other/wtb/dev.conll',
+  )
+  download_file(
+    desc='downloading WTB test set',
+    download_file_name='wtb_test.conll',
+    url='https://raw.githubusercontent.com/hankcs/multi-criteria-cws/master/data/other/wtb/test.conll',
+  )
+
+  is_all_file_copied = True
+  for split in ['train', 'dev', 'test']:
+    if not os.path.exists(os.path.join(src.vars.RAW_DATA_PATH, f'wtb_{split}.txt')):
+      is_all_file_copied = False
+      break
+
+  if is_all_file_copied:
+    logger.info('Skip parsing raw data: WTB raw data are already parsed.')
+    return
+
+  logger.info('Start parsing raw data.')
+  for split in ['train', 'dev', 'test']:
+    logger.info(f'Start parsing wtb_{split}.conll.')
+    with open(os.path.join(src.vars.DOWNLOAD_DATA_PATH, f'wtb_{split}.conll'), 'r', encoding='utf-8') as in_txt_file:
+      lines = in_txt_file.readlines()
+    with open(os.path.join(src.vars.RAW_DATA_PATH, f'wtb_{split}.txt'), 'w', encoding='utf-8') as out_txt_file:
+      words = []
+      for line in lines:
+        line = line.strip()
+        # Sentence are separated by empty line.
+        if not line and words:
+          sent = ' '.join(words)
+          out_txt_file.write(f'{sent}\n')
+          words = []
+        else:
+          word = re.split(r'\s+', line)[1]
+          words.append(word)
+
+      if words:
+        sent = ' '.join(words)
+        out_txt_file.write(f'{sent}\n')
+    logger.info(f'Finish parsing wtb_{split}.conll.')
+  logger.info('Finish parsing raw data.')
+
+
+def download_ZX() -> None:
+  """Download ZX dataset.
+
+  We download from hankcs.
+  Source: https://github.com/hankcs/multi-criteria-cws/tree/master/data/other
+  """
+  # Download dataset.
+  download_file(
+    desc='downloading ZX training set',
+    download_file_name='train.zhuxian.wordpos',
+    url='https://raw.githubusercontent.com/hankcs/multi-criteria-cws/master/data/other/zx/train.zhuxian.wordpos',
+  )
+  download_file(
+    desc='downloading ZX dev set',
+    download_file_name='dev.zhuxian.wordpos',
+    url='https://raw.githubusercontent.com/hankcs/multi-criteria-cws/master/data/other/zx/dev.zhuxian.wordpos',
+  )
+  download_file(
+    desc='downloading ZX test set',
+    download_file_name='test.zhuxian.wordpos',
+    url='https://raw.githubusercontent.com/hankcs/multi-criteria-cws/master/data/other/zx/test.zhuxian.wordpos',
+  )
+
+  is_all_file_copied = True
+  for split in ['train', 'dev', 'test']:
+    if not os.path.exists(os.path.join(src.vars.RAW_DATA_PATH, f'zx_{split}.txt')):
+      is_all_file_copied = False
+      break
+
+  if is_all_file_copied:
+    logger.info('Skip parsing raw data: ZX raw data are already parsed.')
+    return
+
+  logger.info('Start parsing raw data.')
+  for split in ['train', 'dev', 'test']:
+    logger.info(f'Start parsing {split}.zhuxian.wordpos.')
+    with open(
+      os.path.join(src.vars.DOWNLOAD_DATA_PATH, f'{split}.zhuxian.wordpos'), 'r', encoding='utf-8'
+    ) as in_txt_file:
+      lines = in_txt_file.readlines()
+    with open(os.path.join(src.vars.RAW_DATA_PATH, f'zx_{split}.txt'), 'w', encoding='utf-8') as out_txt_file:
+      for line in lines:
+        words = []
+        for word_with_pos in re.split(r'\s+', line.strip()):
+          word = re.sub(r'_[A-Z]+$', r'', word_with_pos)
+          words.append(word)
+        sent = ' '.join(words)
+        out_txt_file.write(f'{sent}\n')
+    logger.info(f'Finish parsing {split}.zhuxian.wordpos.')
+  logger.info('Finish parsing raw data.')
+
+
 def download_liwenzhu() -> None:
   """Download dataset provided by liwenzhu.
 
@@ -355,6 +573,10 @@ def download_all() -> None:
   download_SIGHAN_2008_bakeoff_SXU()
   download_NLPCC_2016_Weibo()
   download_CTB8()
+  download_CNC()
+  download_UD()
+  download_WTB()
+  download_ZX()
 
 
 if __name__ == '__main__':

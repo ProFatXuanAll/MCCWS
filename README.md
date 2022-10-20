@@ -97,6 +97,18 @@ python -m src.eval_mccws_f1 \
   --split test \
   --use_unc 0
 
+# Inference with UNC.
+python -m src.infer_mccws \
+  --batch_size 512 \
+  --exp_name my_test_unc_infer_exp \
+  --first_ckpt 175000 \
+  --gpu 0 \
+  --last_ckpt 200000 \
+  --model_exp_name my_model_exp \
+  --seed 42 \
+  --split test \
+  --use_unc 1
+
 # Run test F1 evaluation with UNC.
 python -m src.eval_mccws_f1 \
   --exp_name my_test_unc_infer_exp \

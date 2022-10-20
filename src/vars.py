@@ -23,4 +23,4 @@ TAG_SET_M_ID = TAG_SET['m']
 TAG_SET_S_ID = TAG_SET['s']
 
 # Supported datasets.
-ALL_DSETS = ['as', 'cityu', 'ctb8', 'msr', 'pku', 'sxu', 'weibo']
+ALL_DSETS = ['as', 'cityu', 'cnc', 'ctb8', 'msr', 'pku', 'sxu', 'weibo']

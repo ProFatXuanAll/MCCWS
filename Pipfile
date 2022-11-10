@@ -16,6 +16,7 @@ requests = "*"
 tqdm = "*"
 patool = "*"
 pyunpack = "*"
+filelock = "*"
 
 [dev-packages]
 yapf = "*"

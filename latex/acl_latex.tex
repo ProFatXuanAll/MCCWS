@@ -95,7 +95,7 @@ Tainan, Taiwan \\
   Existing works always manually choose a suitable labeling criterion when perform training and evaluation, but fail to do so when perform inference, i.e., when suitable labeling criterion is unknown.
   Hence, to make MCCWS model a practical tool, one need to decide how to choose a suitable labeling criterion.
   In this work we show the need of additional criterion classification model and we proposed to use only one model to perform both word segmentation and choosing suitable labeling criterion.
-  Experiments show that our MCCWS model has only minor F1-score degeneration (\(0.44\%\)) on average comparing to SOTA MCCWS model, meanwhile has the ability to choose criterion automatically and thus makes our MCCWS model practical.
+  Experiments show that our MCCWS model has only minor F1-score degeneration (\(0.28\%\)) on average comparing to SOTA MCCWS model, meanwhile has the ability to choose criterion automatically and thus makes our MCCWS model practical.
   % Further analysis show that labeling inconsistency inside a dataset can be found by our method.
   Code to reproduce all experiments and details of all hyperparameters are available on GitHub \footnote{\url{http://acl-org.github.io/ACLPUB/formatting.html}}.
 \end{abstract}
@@ -105,13 +105,13 @@ Tainan, Taiwan \\
 In English, sentences are sequence of words with spaces in between.
 This is not the case for some East-Asian languages like Chinese, Japanese or Korean, and it cause problems for one to process text in these languages.
 Tokenizers for these languages, on the other hand, segment character sequences into smaller tokens, but may not respect the syntactic and semantic boundaries.
-Thus, the need for Chinese word segmentation (CWS) tools is clear and CWS is still an on going research \citep{chen-etal-2017-adversarial,ma-etal-2018-state,He-2019-effective,Gong-2019-switch,huang-etal-2020-towards,huang-etal-2020-joint-multiple,ke2020unified,qiu-etal-2020-concise,ke-etal-2021-pre,tong-etal-2022-word}.
+Thus, the need for Chinese word segmentation (CWS) tools is clear and CWS is still an on going research \cite{chen-etal-2017-adversarial,ma-etal-2018-state,He-2019-effective,Gong-2019-switch,huang-etal-2020-towards,huang-etal-2020-joint-multiple,ke2020unified,qiu-etal-2020-concise,ke-etal-2021-pre,tong-etal-2022-word}.
 
 At present, \(97\%\) or higher F1-scores on CWS datasets are mainly achieved with single model per dataset.
 But this means multiple model instances have to be saved and can cost a lot of spaces.
 Therefore, it is ideal to use one model for all CWS datasets.
 However, explicit degeneration has been observed when sharing one model across CWS datasets.
-As point out first by \citep{chen-etal-2017-adversarial} and followed by many researches, the degeneration is mainly due to cross-dataset label inconsistency caused by different lingustic perspective.
+As point out first by \cite{chen-etal-2017-adversarial} and followed by many researches, the degeneration is mainly due to cross-dataset label inconsistency caused by different lingustic perspective.
 For example, Chinese names, in their written form, do not have space between first name and last name, and some datasets segment last names while others do not.
 For other example, consider idioms.
 Frequently occured idioms are treated as single words.
@@ -122,16 +122,16 @@ See Table~\ref{tab:label-inconsistency} for actual samples from datasets.
   \centering
   \begin{tabular}{lll}
     \hline
-    \textbf{Dataset} & \textbf{Samples}       & \textbf{Labels} \\
+    \textbf{Dataset} & \textbf{Samples}  & \textbf{Labels} \\
     \hline
-    PKU              & \SimCh{江-泽民}        & S-BE            \\
-    MSR              & \SimCh{江泽民}         & BME             \\
+    PKU              & \SimCh{江-泽民}      & S-BE            \\
+    MSR              & \SimCh{江泽民}       & BME             \\
     \hline
     AS               & \TraCh{何-樂-而-不-為} & S-S-S-S-S       \\
     CIT              & \TraCh{何樂而不為}     & BMMME           \\
     \hline
   \end{tabular}
-  \caption{Actual samples from different datasets \citep{emerson-2005-second} demonstrate labeling inconsistency.
+  \caption{Actual samples from different datasets \cite{emerson-2005-second} demonstrate labeling inconsistency.
     Hyphen ``-'' denotes segmentation.
     Labels are defined in Section~\ref{sec:data}.
     Last name \SimCh{江} is segmented in PKU dataset but no in MSR dataset.
@@ -141,11 +141,11 @@ See Table~\ref{tab:label-inconsistency} for actual samples from datasets.
   \label{tab:label-inconsistency}
 \end{table}
 
-Hence, to achieve higher F1-scores on CWS dataset with only one model, many researches proposed to used the so called multi-criteria learning on CWS model \citep{chen-etal-2017-adversarial,He-2019-effective,Gong-2019-switch,huang-etal-2020-towards,huang-etal-2020-joint-multiple,ke2020unified,qiu-etal-2020-concise,ke-etal-2021-pre}.
+Hence, to achieve higher F1-scores on CWS dataset with only one model, many researches proposed to used the so called multi-criteria learning on CWS model \cite{chen-etal-2017-adversarial,He-2019-effective,Gong-2019-switch,huang-etal-2020-towards,huang-etal-2020-joint-multiple,ke2020unified,qiu-etal-2020-concise,ke-etal-2021-pre}.
 Here criteria (or criterion) means the labeling standard.
 A multi-criteria CWS (MCCWS) model will receive both a character sequence and a criteria-specific hints to perform CWS.
 In this way, we can train on much larger text corpus to make a CWS model more general, meanwhile have the ability to perform CWS with subtle differences.
-Experiments show that MCCWS indeed perform better then CWS model without multi-criteria learning, and can achieve comparable performance compare to SOTA single model per dataset \citep{ke2020unified,ke-etal-2021-pre,tong-etal-2022-word}.
+Experiments show that MCCWS indeed perform better then CWS model without multi-criteria learning, and can achieve comparable performance compare to SOTA single model per dataset \cite{ke2020unified,ke-etal-2021-pre,tong-etal-2022-word}.
 
 Despite the effectiveness of MCCWS model, one problem remains for MCCWS model to be practical.
 When performing mulit-criteria learning on training sets or performing evaluation on test sets, one always know the pairing criterion for a given character sequence.
@@ -155,32 +155,32 @@ But this is a problem when one do not know how to choose a suitable criterion, e
 Hence, to make MCCWS models practical, one need to provide a way to choose a suitable criterion for a given character sequence.
 
 In this work, we proposed to jointly train an auxiliary text classification task together with multi-criteria learning.
-Our MCCWS model can automatically choose a suitable criterion for a character sequence, meanwhile only sacrificing a little (\(0.44\%\)) F1-score performance on average.
+Our MCCWS model can automatically choose a suitable criterion for a character sequence, meanwhile only sacrificing a little (\(0.28\%\)) F1-score performance on average.
 %% TODO: add ablation description.
 
 \section{Related Works}\label{sec:related}
 
-Early works achieved \(95\%\) F1-score on SIGHAN bakeoff 2005 datasets \citep{emerson-2005-second}.
-Those works used either uni-directional or bi-directional recurrent neural networks \citep{Schuster-1997-bidirectional,graves-2005-framewise}, with or without conditional random field \citep{chen-etal-2017-adversarial,ma-etal-2018-state,He-2019-effective}.
+Early works achieved \(95\%\) F1-score on SIGHAN bakeoff 2005 datasets \cite{emerson-2005-second}.
+Those works used either uni-directional or bi-directional recurrent neural networks \cite{Schuster-1997-bidirectional,graves-2005-framewise}, with or without conditional random field \cite{chen-etal-2017-adversarial,ma-etal-2018-state,He-2019-effective}.
 Features were in the style of lookup tables;
 advanced features like syntactic structures are not used.
 % This is because one have syntactic structure only after words are defined, which happens only after CWS is performed.
-Due to the recent advancement of large pre-trained language models, F1-score on CWS is now up to \(97\%\) \citep{huang-etal-2020-towards,huang-etal-2020-joint-multiple,ke2020unified,qiu-etal-2020-concise,ke-etal-2021-pre,tong-etal-2022-word}.
-% Our experiments showed that by fine-tuning BERT~\citep{devlin-etal-2019-bert} on single CWS dataset, \(97\%\) F1-score can be easily achieved.
+Due to the recent advancement of large pre-trained language models, F1-score on CWS is now up to \(97\%\) \cite{huang-etal-2020-towards,huang-etal-2020-joint-multiple,ke2020unified,qiu-etal-2020-concise,ke-etal-2021-pre,tong-etal-2022-word}.
+% Our experiments showed that by fine-tuning BERT~\cite{devlin-etal-2019-bert} on single CWS dataset, \(97\%\) F1-score can be easily achieved.
 
 % As their are multiple CWS datasets with different labeling criterion, many researches start to propose MCCWS models.
-\citep{chen-etal-2017-adversarial} is the first to propose a MCCWS model with two sub-models, one is called shared model and the other is called private model.
+\cite{chen-etal-2017-adversarial} is the first to propose a MCCWS model with two sub-models, one is called shared model and the other is called private model.
 The shared model is trained to share common knowledge across CWS datasets, while the private model is aimed to learn criteria-specific knowledge.
 The shared model is trained under a adversarial setting, so that the criterion discriminator cannot reliably predict the criterion based on input sequence, thus failed to provide an automechanism for choosing suitable criterion.
 
-Following \citep{chen-etal-2017-adversarial}, many different private models were proposed.
-\citep{Gong-2019-switch} proposed switched-LSTMs which can dynamically route between multiple BiLSTMs to encode features, thus remove the need for creating different private models for each CWS dataset.
-However, \citep{Gong-2019-switch} also removed the criterion classification task, so there is no way for switched-LSTMs to automatically choose a suitable criterion for the given sequence, and similarly for other MCCWS works with private model settings (\citep{huang-etal-2020-towards,qiu-etal-2020-concise}).
+Following \cite{chen-etal-2017-adversarial}, many different private models were proposed.
+\cite{Gong-2019-switch} proposed switched-LSTMs which can dynamically route between multiple BiLSTMs to encode features, thus remove the need for creating different private models for each CWS dataset.
+However, \cite{Gong-2019-switch} also removed the criterion classification task, so there is no way for switched-LSTMs to automatically choose a suitable criterion for the given sequence, and similarly for other MCCWS works with private model settings (\cite{huang-etal-2020-towards,qiu-etal-2020-concise}).
 
 Instead of using more and more complex private models, some proposed to make criterion as part of input and thus reduced the overall model complexity.
-\citep{He-2019-effective} proposed to add two artificial tokens which represent the labeling criterion, and put them at the begining and the end of input sentence, and then use BiLSTM to perform MCCWS.
-\citep{huang-etal-2020-joint-multiple} do the same as \citep{He-2019-effective} but use Transformer encoder \citep{vaswani-2017-attention} instead of BiLSTM.
-\citep{ke-etal-2021-pre} also use Transformer encoder, but only one artifical token are added at the begining of input sentence.
+\cite{He-2019-effective} proposed to add two artificial tokens which represent the labeling criterion, and put them at the begining and the end of input sentence, and then use BiLSTM to perform MCCWS.
+\cite{huang-etal-2020-joint-multiple} do the same as \cite{He-2019-effective} but use Transformer encoder \cite{vaswani-2017-attention} instead of BiLSTM.
+\cite{ke-etal-2021-pre} also use Transformer encoder, but only one artifical token are added at the begining of input sentence.
 These works always manually assign criterion tokens, and therefore cannot choose a suitable criterion automatically.
 
 In summary, previous researches on MCCWS either not provide a way to choose a criterion, or always manually choose a criterion.
@@ -244,7 +244,7 @@ To perform inference, one need to give a MCCWS model both an input sequence \(x\
   y^* = \argmax_{y \in \TagSet^{\abs{x}}} \Pr(y | x, C^m ; \theta) \\
   = \argmax_{y_1, \dots, y_{\abs{x}} \in \TagSet} \prod_{i = 1}^{\abs{x}} \Pr(y_i | x, C^m ; \theta).
 \end{multline}
-The same optimization goal as in Equation~\eqref{eq:4} can be found in \citep{chen-etal-2017-adversarial,He-2019-effective,Gong-2019-switch,huang-etal-2020-towards,huang-etal-2020-joint-multiple,ke2020unified,qiu-etal-2020-concise,ke-etal-2021-pre}, and may written in the form of parameter \(\Theta^m\) when using private model or in the form of token \([m]\) when input together with character sequence (see Section~\ref{sec:related}).
+The same optimization goal as in Equation~\eqref{eq:4} can be found in \cite{chen-etal-2017-adversarial,He-2019-effective,Gong-2019-switch,huang-etal-2020-towards,huang-etal-2020-joint-multiple,ke2020unified,qiu-etal-2020-concise,ke-etal-2021-pre}, and may written in the form of parameter \(\Theta^m\) when using private model or in the form of token \([m]\) when input together with character sequence (see Section~\ref{sec:related}).
 As we will demonstrate in Section~\ref{sec:class}, using only Equation~\eqref{eq:4} to perform optimization cannot make a MCCWS model automatically choose a suitable labeling criterion for the given input \(x\), and thus make a MCCWS less practical.
 
 \subsection{Auxiliary Classification Model}\label{sec:class}
@@ -271,15 +271,15 @@ Then we use the corresponding criterion \(C^{m^*}\) to perform inference as in E
 Thus, one need to train two models (one for MCCWS and one for dataset classification) to provide an automechanism for choosing suitable criterion.
 In Section~\ref{sec:auto}, we proposed our MCCWS which can automatically choose criterion without auxiliary classification model.
 
-We note that optimization goal similar to Equation~\eqref{eq:6} can be found in \citep{chen-etal-2017-adversarial}.
-But they used adversarial training so that their auxiliary classification model can only provide nearly random prediction for dataset classification \citep{goodfellow-2014-gan}.
-Besides, our average F1 performance is \(1.8\%\) higher comparing to \citep{chen-etal-2017-adversarial}.
+We note that optimization goal similar to Equation~\eqref{eq:6} can be found in \cite{chen-etal-2017-adversarial}.
+But they used adversarial training so that their auxiliary classification model can only provide nearly random prediction for dataset classification \cite{goodfellow-2014-gan}.
+Besides, our average F1 performance is \(1.8\%\) higher comparing to \cite{chen-etal-2017-adversarial}.
 
 \subsection{Automatically Choosing Criterion}\label{sec:auto}
 
 \begin{figure*}[t!]
   \center
-  \includegraphics[width=.5\columnwidth]{./pic2.png}
+  \includegraphics[width=.9\columnwidth]{./pic2.png}
   \caption{Our MCCWS model.
     Models will receive both criterion token and character sequence as input.
     The BERT encoder output are used to predict criterion and \(\TagSet\) for each position.
@@ -310,7 +310,7 @@ This is equivalent to optimize the sum of Equations~\eqref{eq:4}\eqref{eq:6}:
 \end{multline}
 Equation~\eqref{eq:11} is the keystone to make our MCCWS model capable of automatically choosing a suitable criterion for a given input.
 
-In practice, we use BERT~\citep{devlin-etal-2019-bert} as our MCCWS model \(\theta\) (see Figure~\ref{fig:1}).
+In practice, we use BERT~\cite{devlin-etal-2019-bert} as our MCCWS model \(\theta\) (see Figure~\ref{fig:1}).
 We define criteria-specific token \Ck{m} for each CWS dataset \(D^m\).
 We define another token \UNC which represents ``unknown criterion''.
 Each character sequence \(x\) is now paired with either its corresponding \Ck{m} or \UNC, but not both.
@@ -321,7 +321,7 @@ If the paired token is \UNC, then perform criterion classification is equivalent
 If the paired token is \Ck{m}, then perform criterion classification is equivalent to identity mapping, and perform CWS is equivalent to perform MCCWS as in Equation~\eqref{eq:4}.
 Under our setting, our MCCWS model can automatically choose a suitable criterion for the given input, meanwhile have the option to manually choose labeling criterion by case.
 
-% Our work in some way is similar to \citep{ke-etal-2021-pre}.
+% Our work in some way is similar to \cite{ke-etal-2021-pre}.
 % We both use unknown criterion token \UNC and a criteria-specific token \Ck{m}.
 % But they do so to perform meta-learning, and they never use \UNC to perform text classification and thus have no way to automatically choose a suitable criterion.
 % While ours do not use meta-learning and we provide an auto mechanism to choose suitable labeling criterion.
@@ -329,18 +329,18 @@ Under our setting, our MCCWS model can automatically choose a suitable criterion
 \section{Experiments}
 
 \begin{table}[t]
-  \caption{Dataset statistics for training, development and test sets.}
+  \caption{Number of words in training, development and test sets for all CWS datasets.}
   \label{tab:dset-stats}
   \centering
   \resizebox{1\columnwidth}{!}{
     \begin{tabular}{lccc}
       \textbf{Corpus} & \textbf{\#Train Words} & \textbf{\#Dev Words} & \textbf{\#Test Words} \\
       \hline
-      AS              & 4.9M                   & 546K                 & 122K                  \\
-      CITYU           & 1.3M                   & 146K                 & 40K                   \\
+      AS              & 4.9M                   & 539K                 & 122K                  \\
+      CITYU           & 1.3M                   & 148K                 & 40K                   \\
       CNC             & 5.8M                   & 727K                 & 726K                  \\
-      MSRA            & 2.1M                   & 234K                 & 106K                  \\
-      PKU             & 999K                   & 110K                 & 104K                  \\
+      MSRA            & 2.1M                   & 223K                 & 106K                  \\
+      PKU             & 998K                   & 110K                 & 104K                  \\
       \hline
     \end{tabular}
   }
@@ -375,7 +375,7 @@ We use five publicly available CWS datasets, one is CNC\footnote{\url{http://cor
 Only AS and CITYU are in traditional Chinese, the rest are in simplified Chinese.
 For CNC, we use the official split of train, development and test sets.
 For AS, CITYU, MSRA and PKU, we randomly pick \(10\%\) of data from training set as development set.
-Following \cite{cai-etal-2017-fast}, we first convert full-width characters into half-width characters, then we convert consecutive digits and english characters into single token, while respecting spaces if there is any.
+Following \cite{cai-etal-2017-fast}, we first convert full-width characters into half-width characters, then we convert consecutive digits and english characters into single token while respecting spaces if there is any.
 No conversion is made between traditional and simplified Chinese.
 On training set sentences are set to have at most \(512\) characters.
 On validation and test sets sentences are splited as training and then merge back to their original form after inference.
@@ -403,16 +403,17 @@ Dataset statistics can be found in Table~\ref{tab:dset-stats}.
 % No conversion is made for traditional and simplified Chinese.
 % Dataset statistics can be found in Table~\ref{tab:dset-stats}.
 
-We use Pytorch \cite{paszke-etal-2019-pytorch} to implement our model.
-We fine-tune BERT with AdamW \cite{loshchilov2018decoupled} on the pre-trained checkpoint \texttt{bert-base-case}\footnote{\url{https://huggingface.co/bert-base-chinese}} provided by hugginface \cite{wolf2019huggingface}.
+We use Pytorch~\cite{paszke-etal-2019-pytorch} to implement our model.
+We fine-tune BERT with AdamW~\cite{loshchilov2018decoupled} on the pre-trained checkpoint \texttt{bert-base-case}\footnote{\url{https://huggingface.co/bert-base-chinese}} provided by hugginface \cite{wolf2019huggingface}.
 Moving average coefficients \((\beta_1, \beta_2)\) of AdamW is set to \((0.9, 0.999)\).
 Learning rate is set to \(2 \times 10^{-5}\) and weight decay coefficient is set to \(0.01\).
 We schedule learning rate with linear warmup and linear decay.
 Warmup ratio is set to \(0.1\).
-We set batch size to \(32\) and we update our MCCWS \(250000\) times.
+Dropout~\cite{srivastava2014dropout} is applied with probability \(0.1\).
+We set batch size to \(32\) and we update our MCCWS model \(250000\) times.
 Then we pick the checkpoint with the highest F1 on development set to calculate test set F1.
 
-Each sample in a CWS dataset is paired with corresponding criteria-specific token \Ck{m}.
+Each sample in a CWS dataset is paired with its corresponding criteria-specific token \Ck{m}.
 We randomly replace \(50\%\) of \Ck{m} with \UNC.
 As in \cite{devlin-etal-2019-bert}, we added two linear layer with softmax on top of the BERT encoder output, one for computing \(\Pr(C^k | x ; \theta)\) and one for computing \(\Pr(y | x, C^k ; \theta)\).
 See Figure~\ref{fig:1} for model architecture.
@@ -422,28 +423,31 @@ See Figure~\ref{fig:1} for model architecture.
 \begin{table*}[t]
   \caption{F1-score (in percentage) on all five CWS datasets.
     F1-scores other than ours are directly recorded from their papers.
+    \textbf{Avg-4}: Average F1-score on AS, CITYU, MSRA and PKU.
+    \textbf{Avg-5}: Average F1-score on all five datasets.
     \dag: Manually choosing criterion-specific token for each input.
     \ddag: Automatically choosing criterion for each input by giving \UNC.
   }
   \label{tab:f1}
   \centering
-  % \resizebox{1\columnwidth}{!}{
-  \begin{tabular}{lcccccccc}
-    \hline
-    \textbf{MCCWS Models}                                    & \textbf{AS}    & \textbf{CITYU} & \textbf{CNC}  & \textbf{MSRA} & \textbf{PKU}  & \textbf{Avg.}  \\
-    \hline
-    Model-I+ADV \cite{chen-etal-2017-adversarial}            & 94.64          & 95.55          & -             & 96.04         & 94.32         & 95.35          \\
-    \cite{He-2019-effective}                                 & 95.47          & 95.60          & -             & 97.35         & 95.78         & 96.01          \\
-    \cite{huang-etal-2020-joint-multiple}                    & -              & -              & 97.19         & 98.29         & 96.85         & -              \\
-    \cite{huang-etal-2020-towards}                           & 97.0           & 97.8           & \textbf{97.3} & \textbf{98.5} & \textbf{97.3} & \textbf{97.68} \\
-    Unified Transformer Encoder \cite{qiu-etal-2020-concise} & 96.44          & 96.91          & -             & 98.05         & 96.41         & 96.96          \\
-    M{\small ETA}S{\small EG} \cite{ke-etal-2021-pre}        & \textbf{97.04} & \textbf{98.12} & 97.25         & 98.02         & 96.76         & 97.56          \\
-    \hline
-    \dag Ours                                                & 96.60          & 97.85          & 97.29         & 97.92         & 96.84         & 97.30          \\
-    \ddag Ours + \UNC                                        & 96.55          & 97.71          & 96.91         & 95.33         & 95.26         & 96.35          \\
-    \hline
-  \end{tabular}
-  % }
+  \resizebox{2.1\columnwidth}{!}{
+    \begin{tabular}{lccccccccc}
+      \hline
+      \textbf{MCCWS Models}                                    & \textbf{AS}    & \textbf{CITYU} & \textbf{CNC}  & \textbf{MSRA} & \textbf{PKU}  & \textbf{Avg-4} & \textbf{Avg-5} \\
+      \hline
+      Model-I+ADV~\cite{chen-etal-2017-adversarial}            & 94.64          & 95.55          & -             & 96.04         & 94.32         & 95.14          & -              \\
+      BiLSTM+CRF~\cite{He-2019-effective}                      & 95.4           & 96.2           & -             & 97.4          & 95.9          & 96.23          & -              \\
+      RoBERTa+fine-tune~\cite{huang-etal-2020-joint-multiple}  & -              & -              & 97.19         & 98.29         & 96.85         & -              & -              \\
+      BERT+CRF~\cite{huang-etal-2020-towards}                  & 97.0           & 97.8           & \textbf{97.3} & \textbf{98.5} & \textbf{97.3} & \textbf{97.65} & \textbf{97.58} \\
+      Unified Transformer Encoder~\cite{qiu-etal-2020-concise} & 96.44          & 96.91          & -             & 98.05         & 96.41         & 96.95          & -              \\
+      DCNN~\cite{zhang2021dilated}                             & 96.68          & 96.02          & -             & 96.73         & 96.21         & 96.41          & -              \\
+      M{\small ETA}S{\small EG}~\cite{ke-etal-2021-pre}        & \textbf{97.04} & \textbf{98.12} & 97.25         & 98.02         & 96.76         & 97.48          & 97.44          \\
+      \hline
+      \dag Ours                                                & 96.60          & 97.85          & 97.29         & 97.92         & 96.84         & 97.30          & 97.30          \\
+      \ddag Ours + \UNC                                        & 96.55          & 97.71          & 96.91         & 95.33         & 95.26         & 96.21          & 96.35          \\
+      \hline
+    \end{tabular}
+  }
 \end{table*}
 
 % \begin{table*}[ht]
@@ -499,56 +503,67 @@ See Figure~\ref{fig:1} for model architecture.
 % \end{table*}
 
 Table~\ref{tab:f1} shows the results of our experiments.
-Our MCCWS achieved \(97.24\%\) on average F1-score over five CWS datasets, which is only \(0.44\%\) less comparing to SOTA MCCWS model.
-We note that our MCCWS model is far simpler comparing to others, since we don't use CRF layer and any other handcrafted features.
+Our MCCWS model achieved \(97.3\%\) on average F1-score over four (five) CWS datasets, which is only \(0.35\%\) (\(0.28\%\)) less comparing to SOTA MCCWS model.
+We achieve almost SOTA performance on CNC with only \(0.01\%\) less.
+This is a suprise to us since we didn't use any complex architecture (like CRF) and handcrafted features (like bigram).
 % If we instead average F1-scores over all eights datasets, then our MCCWS achieved \(97.24\%\) and SOTA achieved \(97.57\%\), which makes our gap even smaller.
 % This suggests our MCCWS model does not suffer from serious degeneration when jointly trained to perform criterion classification.
 
 To demonstrate the ability of automatically choosing suitable criterion for each character sequence, we give our MCCWS model \UNC{} to perform inference.
-Table~\ref{tab:f1} shows that under this setting we can achieve \(96.13\%\) F1-score on average which is only \(1.54\%\) less compare to SOTA MCCWS model.
+Table~\ref{tab:f1} shows that we can achieve \(96.21\%\) (\(96.35\%\)) on averge F1-score over four (five) CWS datasets, which is only \(1.44\) (\(1.23\%\)) less compare to SOTA MCCWS model.
 This suggests our MCCWS model is indeed a practical tool.
 
 \subsection{Ablation Study}
 
-\begin{table*}[t]
-  \caption{UNC prediction accuracy.}
+\begin{table}[t]
+  \caption{Criterion prediction accuracy (in percentage) on test sets.}
   \label{tab:acc}
   \centering
-  % \resizebox{.7\columnwidth}{!}{
-  \begin{tabular}{lccccccc}
-    \hline
-                   & \textbf{AS} & \textbf{CITYU} & \textbf{CNC} & \textbf{MSRA} & \textbf{PKU} \\
-    \hline
-    \textbf{AS}    & 99.27       & 5.69           & 0.18         & 0.40          & 0.05         \\
-    \textbf{CITYU} & 0.69        & 94.17          & 0.01         & 0.05          & 0.15         \\
-    \textbf{CNC}   & 0.0         & 0.0            & 94.29        & 27.55         & 8.78         \\
-    \textbf{MSRA}  & 0.0         & 0.0            & 5.41         & 63.09         & 21.29        \\
-    \textbf{PKU}   & 0.03        & 0.13           & 0.12         & 8.91          & 69.73        \\
-    \hline
-  \end{tabular}
-  % }
-\end{table*}
+  \resizebox{1\columnwidth}{!}{
+    \begin{tabular}{lccccccc}
+      \hline
+                          & \textbf{AS} & \textbf{CITYU} & \textbf{CNC} & \textbf{MSRA} & \textbf{PKU} \\
+      \hline
+      \UNC+\textbf{AS}    & 99.27       & 0.69           & 0.0          & 0.0           & 0.03         \\
+      \UNC+\textbf{CITYU} & 5.69        & 94.17          & 0.0          & 0.0           & 0.13         \\
+      \UNC+\textbf{CNC}   & 0.18        & 0.01           & 94.29        & 5.41          & 0.12         \\
+      \UNC+\textbf{MSRA}  & 0.4         & 0.05           & 27.55        & 63.09         & 8.91         \\
+      \UNC+\textbf{PKU}   & 0.05        & 0.13           & 8.78         & 21.29         & 69.73        \\
+      \hline
+    \end{tabular}
+  }
+\end{table}
 
-\begin{table*}[t]
+\begin{table}[t]
   \caption{Wrong token inference F1.}
   \label{tab:tkinf}
   \centering
-  % \resizebox{.7\columnwidth}{!}{
-  \begin{tabular}{lccccccc}
-    \hline
-                   & \textbf{AS} & \textbf{CITYU} & \textbf{CNC} & \textbf{MSRA} & \textbf{PKU} \\
-    \hline
-    \textbf{AS}    & 96.60       & 97.17          & 96.95        & 95.08         & 95.22        \\
-    \textbf{CITYU} & 95.54       & 97.85          & 96.07        & 96.60         & 94.95        \\
-    \textbf{CNC}   & 96.51       & 97.67          & 97.29        & 90.85         & 95.25        \\
-    \textbf{MSRA}  & 95.92       & 97.15          & 94.06        & 97.92         & 94.42        \\
-    \textbf{PKU}   & 95.63       & 97.07          & 92.78        & 87.80         & 96.84        \\
-    \hline
-  \end{tabular}
-  % }
-\end{table*}
+  \resizebox{1\columnwidth}{!}{
+    \begin{tabular}{lccccccc}
+      \hline
+                     & \textbf{AS}    & \textbf{CITYU} & \textbf{CNC}   & \textbf{MSRA}  & \textbf{PKU}   \\
+      \hline
+      \textbf{AS}    & \textbf{96.60} & 97.17          & 96.95          & 95.08          & 95.22          \\
+      \textbf{CITYU} & 95.54          & \textbf{97.85} & 96.07          & 96.60          & 94.95          \\
+      \textbf{CNC}   & 96.51          & 97.67          & \textbf{97.29} & 90.85          & 95.25          \\
+      \textbf{MSRA}  & 95.92          & 97.15          & 94.06          & \textbf{97.92} & 94.42          \\
+      \textbf{PKU}   & 95.63          & 97.07          & 92.78          & 87.80          & \textbf{96.84} \\
+      \hline
+    \end{tabular}
+  }
+\end{table}
 
+We perform further analysis on our MCCWS model.
 Table~\ref{tab:acc} show our criterion prediction accuracy.
+
+In section~4.1:
+(1) Add length-60 baseline on Section~4.1, explain why use 60.
+In section~4.2:
+(1) Show that baseline perform well when manually choosing criterion, but bad when paired with criterion classification model.
+(2) Emphasis our strength through normal F1 and UNC F1.
+(3) Show criterion classification acc error analysis on baseline and ours, show that our is better.
+In section~4.3:
+Wrong token inference F1.
 
 % Some intro to CWS.
 % (1) necessity for CWS.
@@ -564,7 +579,7 @@ Table~\ref{tab:acc} show our criterion prediction accuracy.
 % (2) which model, algorithm and hyperparameters.
 % (3) optimization process and hyperparameters.
 % Notes
-% (1) point out the similarity of between us and \citep{ke-etal-2021-pre}.
+% (1) point out the similarity of between us and \cite{ke-etal-2021-pre}.
 
 % These instructions are for authors submitting papers to *ACL conferences using \LaTeX.
 % They are not self-contained.
@@ -680,7 +695,7 @@ Table~\ref{tab:acc} show our criterion prediction accuracy.
 %     \hline
 %     \textbf{Output}           & \textbf{natbib command} & \textbf{Old ACL-style command} \\
 %     \hline
-%     \citep{Gusfield:97}       & \verb|\citep|           & \verb|\cite|                   \\
+%     \cite{Gusfield:97}       & \verb|\cite|           & \verb|\cite|                   \\
 %     \citealp{Gusfield:97}     & \verb|\citealp|         & no equivalent                  \\
 %     \citet{Gusfield:97}       & \verb|\citet|           & \verb|\newcite|                \\
 %     \citeyearpar{Gusfield:97} & \verb|\citeyearpar|     & \verb|\shortcite|              \\
@@ -696,7 +711,7 @@ Table~\ref{tab:acc} show our criterion prediction accuracy.
 % Table~\ref{citation-guide} shows the syntax supported by the style files.
 % We encourage you to use the natbib styles.
 % You can use the command \verb|\citet| (cite in text) to get ``author (year)'' citations, like this citation to a paper by \citet{Gusfield:97}.
-% You can use the command \verb|\citep| (cite in parentheses) to get ``(author, year)'' citations \citep{Gusfield:97}.
+% You can use the command \verb|\cite| (cite in parentheses) to get ``(author, year)'' citations \cite{Gusfield:97}.
 % You can use the command \verb|\citealp| (alternative cite without parentheses) to get ``author, year'' citations, which is useful for using citations within parentheses (e.g. \citealp{Gusfield:97}).
 
 % \subsection{References}

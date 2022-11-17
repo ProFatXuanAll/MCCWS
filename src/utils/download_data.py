@@ -157,9 +157,9 @@ def download_NLPCC_2016_Weibo() -> None:
 
   # zip file structure mapping.
   txt_file_mapping = [
-    ('nlpcc2016-word-seg-train.dat', 'weibo_train.txt'),
-    ('nlpcc2016-wordseg-dev.dat', 'weibo_dev.txt'),
-    ('nlpcc2016-wordseg-test.dat', 'weibo_test.txt'),
+    ('nlpcc2016-word-seg-train.dat', 'nlpcc_train.txt'),
+    ('nlpcc2016-wordseg-dev.dat', 'nlpcc_dev.txt'),
+    ('nlpcc2016-wordseg-test.dat', 'nlpcc_test.txt'),
   ]
 
   is_all_file_renamed = True
@@ -388,6 +388,50 @@ def download_CNC() -> None:
   logger.info('Finish parsing raw data.')
 
 
+def download_CTB6() -> None:
+  """Download CTB6 dataset.
+
+  We download from hankcs.
+  Source: https://github.com/hankcs/multi-criteria-cws/tree/master/data/other
+  """
+  # Download dataset.
+  download_file(
+    desc='downloading CTB6 training set',
+    download_file_name='ctb6_train.txt',
+    url='https://raw.githubusercontent.com/hankcs/multi-criteria-cws/master/data/other/ctb/ctb6.train.seg',
+  )
+  download_file(
+    desc='downloading CTB6 dev set',
+    download_file_name='ctb6_dev.txt',
+    url='https://raw.githubusercontent.com/hankcs/multi-criteria-cws/master/data/other/ctb/ctb6.dev.seg',
+  )
+  download_file(
+    desc='downloading CTB6 test set',
+    download_file_name='ctb6_test.txt',
+    url='https://raw.githubusercontent.com/hankcs/multi-criteria-cws/master/data/other/ctb/ctb6.test.seg',
+  )
+
+  is_all_file_renamed = True
+  for split in ['train', 'dev', 'test']:
+    if not os.path.exists(os.path.join(src.vars.RAW_DATA_PATH, f'ctb6_{split}.txt')):
+      is_all_file_renamed = False
+      break
+
+  if is_all_file_renamed:
+    logger.info('Skip renaming raw data: CTB6 raw data are already renamed.')
+    return
+
+  logger.info('Start renaming raw data.')
+  for split in ['train', 'dev', 'test']:
+    logger.info(f'Start renaming ctb6_{split}.txt.')
+    with open(os.path.join(src.vars.DOWNLOAD_DATA_PATH, f'ctb6_{split}.txt'), 'r', encoding='utf-8') as in_txt_file:
+      data = in_txt_file.read()
+    with open(os.path.join(src.vars.RAW_DATA_PATH, f'ctb6_{split}.txt'), 'w', encoding='utf-8') as out_txt_file:
+      out_txt_file.write(data)
+    logger.info(f'Finish renaming ctb6_{split}.txt.')
+  logger.info('Finish renaming raw data.')
+
+
 def download_UD() -> None:
   """Download Universal Dependency dataset.
 
@@ -572,6 +616,7 @@ def download_all() -> None:
   download_SIGHAN_2005_bakeoff()
   download_SIGHAN_2008_bakeoff_SXU()
   download_NLPCC_2016_Weibo()
+  download_CTB6()
   download_CTB8()
   download_CNC()
   download_UD()

@@ -16,6 +16,7 @@ EXP_PATH: Final[str] = os.path.join(PROJECT_ROOT, 'exp')
 LOG_PATH: Final[str] = os.path.join(PROJECT_ROOT, 'log')
 
 # BMES tagset.
+# Pad is reserved for padding position.
 TAG_SET = {'b': 0, 'e': 1, 'm': 2, 's': 3, 'pad': 4}
 TAG_SET_B_ID = TAG_SET['b']
 TAG_SET_E_ID = TAG_SET['e']
@@ -23,4 +24,4 @@ TAG_SET_M_ID = TAG_SET['m']
 TAG_SET_S_ID = TAG_SET['s']
 
 # Supported datasets.
-ALL_DSETS = ['as', 'cityu', 'cnc', 'ctb8', 'msr', 'pku', 'sxu', 'weibo']
+ALL_DSETS = ['as', 'cityu', 'cnc', 'ctb6', 'msr', 'nlpcc', 'pku', 'sxu', 'ud', 'wtb', 'zx']

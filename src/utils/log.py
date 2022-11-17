@@ -20,7 +20,7 @@ def setup_log_to_file(exp_name: str, log_level: str = 'DEBUG'):
   # Make sure log folder exist.
   create_log_folder()
 
-  # assuming log_level is bound to the string value obtained from the command line argument.
+  # Assuming log_level is bound to the string value obtained from the command line argument.
   # Convert to upper case to allow the user to specify --log=DEBUG or --log=debug
   numeric_level = getattr(logging, log_level.upper(), None)
   if not isinstance(numeric_level, int):

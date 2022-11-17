@@ -21,7 +21,6 @@ r"""Text preprocess script.
 """
 
 import argparse
-import copy
 import json
 import logging
 import os
@@ -389,11 +388,11 @@ def main(argv: List[str]) -> None:
   src.utils.download_data.download_all()
 
   # Load tokenizer for preprocessing.
-  # tknzr = load_tknzr(
-  #   dset_names=args.use_dset,
-  #   exp_name=args.exp_name,
-  #   model_name=args.model_name,
-  # )
+  tknzr = load_tknzr(
+    dset_names=args.use_dset,
+    exp_name=args.exp_name,
+    model_name=args.model_name,
+  )
 
   criterion_encode = {dset_name: idx for idx, dset_name in enumerate(args.use_dset)}
 
@@ -425,31 +424,31 @@ def main(argv: List[str]) -> None:
     write_sents_to_file(exp_name=args.exp_name, file_name=f'{dset_name}_test.ori.txt', sents=test_ori_sents)
     write_sents_to_file(exp_name=args.exp_name, file_name=f'{dset_name}_test.norm.txt', sents=test_norm_sents)
 
-    # train_tensor_data = encode_sents(
-    #   criterion_encode=criterion_encode,
-    #   dset_name=dset_name,
-    #   max_len=args.max_len,
-    #   sents=train_norm_sents,
-    #   tknzr=tknzr,
-    # )
-    # dev_tensor_data = encode_sents(
-    #   criterion_encode=criterion_encode,
-    #   dset_name=dset_name,
-    #   max_len=args.max_len,
-    #   sents=dev_norm_sents,
-    #   tknzr=tknzr,
-    # )
-    # test_tensor_data = encode_sents(
-    #   criterion_encode=criterion_encode,
-    #   dset_name=dset_name,
-    #   max_len=args.max_len,
-    #   sents=test_norm_sents,
-    #   tknzr=tknzr,
-    # )
+    train_tensor_data = encode_sents(
+      criterion_encode=criterion_encode,
+      dset_name=dset_name,
+      max_len=args.max_len,
+      sents=train_norm_sents,
+      tknzr=tknzr,
+    )
+    dev_tensor_data = encode_sents(
+      criterion_encode=criterion_encode,
+      dset_name=dset_name,
+      max_len=args.max_len,
+      sents=dev_norm_sents,
+      tknzr=tknzr,
+    )
+    test_tensor_data = encode_sents(
+      criterion_encode=criterion_encode,
+      dset_name=dset_name,
+      max_len=args.max_len,
+      sents=test_norm_sents,
+      tknzr=tknzr,
+    )
 
-    # write_tensor_data_to_file(exp_name=args.exp_name, file_name=f'{dset_name}_train.pkl', tensor_data=train_tensor_data)
-    # write_tensor_data_to_file(exp_name=args.exp_name, file_name=f'{dset_name}_dev.pkl', tensor_data=dev_tensor_data)
-    # write_tensor_data_to_file(exp_name=args.exp_name, file_name=f'{dset_name}_test.pkl', tensor_data=test_tensor_data)
+    write_tensor_data_to_file(exp_name=args.exp_name, file_name=f'{dset_name}_train.pkl', tensor_data=train_tensor_data)
+    write_tensor_data_to_file(exp_name=args.exp_name, file_name=f'{dset_name}_dev.pkl', tensor_data=dev_tensor_data)
+    write_tensor_data_to_file(exp_name=args.exp_name, file_name=f'{dset_name}_test.pkl', tensor_data=test_tensor_data)
 
 
 if __name__ == '__main__':

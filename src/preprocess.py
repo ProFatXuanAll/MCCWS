@@ -92,25 +92,20 @@ def find_trunc_idx(max_len: int, words: List[str]) -> int:
   """Find truncate index in the sentence.
 
   First try to find the last punctuation in the sentence.
-  If there is no punctuation, then truncate to max length.
+  If there is no punctuation, then simply return last index.
 
   Return index of the last word before truncated.
   """
+  assert sum(map(len, words)) <= max_len
+
   # Find last punctuation.
   for idx in range(len(words) - 1, -1, -1):
     if PUNC_PTTN.match(words[idx]):
       return idx
 
   # Fail to find punctuation.
-  # Find length truncation index instead.
-  char_count = 0
-  for idx, word in enumerate(words):
-    if char_count + len(word) > max_len:
-      return idx
-    char_count += len(word)
-
-  # This cannot happen.
-  raise ValueError('No truncation index can be found.')
+  # Simply return last index.
+  return len(words) - 1
 
 
 def parse_args(argv: List[str]) -> argparse.Namespace:
@@ -211,7 +206,7 @@ def read_sents_from_file(file_name: str, max_len: int) -> List[str]:
       if char_count > max_len:
         # Find truncation index.
         # Use `+ start_idx` to shift starting point.
-        trunc_idx = find_trunc_idx(max_len=max_len, words=norm_words[start_idx:end_idx + 1]) + start_idx
+        trunc_idx = find_trunc_idx(max_len=max_len, words=norm_words[start_idx:end_idx]) + start_idx
 
         # Perform truncation.
         # The word in the truncation point is included.

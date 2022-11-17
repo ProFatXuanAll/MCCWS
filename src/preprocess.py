@@ -36,7 +36,7 @@ import transformers
 import src.utils.download_data
 import src.utils.rand
 import src.vars
-from src.vars import TAG_SET
+from src.vars import TAG_SET_B_ID, TAG_SET_E_ID, TAG_SET_M_ID, TAG_SET_PAD_ID, TAG_SET_S_ID
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +44,7 @@ NO_DEV_DSETS = ['as', 'cityu', 'msr', 'pku', 'sxu']
 
 ALPHA_NORM_PTTN = re.compile(r'[A-Za-z_.]+')
 NUM_NORM_PTTN = re.compile(r'((-|\+)?(\d+)([\.|·/∶:]\d+)?%?)+')
-PUNC_PTTN = re.compile(r'^[。！？：；…+、，（）“”’,;!?、,()『』]+$')
+PUNC_PTTN = re.compile(r'^[。！？：；…+、，（）“”’,;!?、,]+$')
 SPACE_PTTN = re.compile(r'\s+')
 
 
@@ -92,20 +92,23 @@ def find_trunc_idx(max_len: int, words: List[str]) -> int:
   """Find truncate index in the sentence.
 
   First try to find the last punctuation in the sentence.
-  If there is no punctuation, then simply return last index.
+  If there is no punctuation, then find the index where max length is not exceeded.
 
   Return index of the last word before truncated.
   """
-  assert sum(map(len, words)) <= max_len
-
   # Find last punctuation.
   for idx in range(len(words) - 1, -1, -1):
     if PUNC_PTTN.match(words[idx]):
       return idx
 
   # Fail to find punctuation.
-  # Simply return last index.
-  return len(words) - 1
+  # Find the index where max length is not exceeded.
+  char_count = 0
+  for idx, word in enumerate(words):
+    if char_count + len(word) > max_len:
+      return idx - 1
+    char_count += len(word)
+  return idx
 
 
 def parse_args(argv: List[str]) -> argparse.Namespace:
@@ -188,6 +191,10 @@ def read_sents_from_file(file_name: str, max_len: int) -> List[str]:
     norm_long_sent = num_norm(sent=ori_long_sent)
     norm_long_sent = alpha_norm(sent=norm_long_sent)
 
+    # Discard empty line.
+    if not ori_long_sent:
+      continue
+
     ori_words = SPACE_PTTN.split(ori_long_sent)
     norm_words = SPACE_PTTN.split(norm_long_sent)
 
@@ -215,6 +222,8 @@ def read_sents_from_file(file_name: str, max_len: int) -> List[str]:
 
         norm_short_sent = ' '.join(norm_words[start_idx:trunc_idx + 1]).strip()
         norm_short_sents.append(norm_short_sent)
+
+        assert sum(map(len, norm_words[start_idx:trunc_idx + 1])) <= max_len
 
         # Shift start index.
         start_idx = trunc_idx + 1
@@ -254,25 +263,6 @@ def write_sents_to_file(exp_name: str, file_name: str, sents: List[str]) -> None
       out_txt_file.write(f'{sent}\n')
 
   logger.info(f'Finish writing to {out_txt_file_path}.')
-
-
-def split_sent_by_len(max_len: int, sents: List[str]) -> List[str]:
-  new_sents = []
-  for sent in sents:
-    new_sent = []
-    new_sent_len = 0
-    for word in re.split(r'\s+', sent):
-      if new_sent_len + len(word) >= max_len:
-        new_sents.append(' '.join(new_sent))
-        new_sent = []
-        new_sent_len = 0
-      new_sent.append(word)
-      new_sent_len += len(word)
-
-    if new_sent:
-      new_sents.append(' '.join(new_sent))
-
-  return new_sents
 
 
 def load_tknzr(
@@ -322,18 +312,18 @@ def encode_sents(
   for sent in sents:
     # BEMS tagging.
     answer: List[int] = []
-    for word in re.split(r'\s+', sent):
+    for word in SPACE_PTTN.split(sent):
       if len(word) == 1:
-        answer.append(TAG_SET['s'])
+        answer.append(TAG_SET_S_ID)
       elif len(word) == 2:
-        answer.extend([TAG_SET['b'], TAG_SET['e']])
+        answer.extend([TAG_SET_B_ID, TAG_SET_E_ID])
       else:
-        answer.extend([TAG_SET['b']] + [TAG_SET['m']] * (len(word) - 2) + [TAG_SET['e']])
+        answer.extend([TAG_SET_B_ID] + [TAG_SET_M_ID] * (len(word) - 2) + [TAG_SET_E_ID])
     answer = [criterion_encode[dset_name]] + answer
 
     # First remove spaces between "words", then insert spaces between "characters".
     # This is need for sentencepiece to split sentences into characters.
-    char_seq = ' '.join(list(re.sub(r'\s+', r'', sent)))
+    char_seq = ' '.join(list(SPACE_PTTN.sub(r'', sent)))
     # Add criterion specific token at front.
     char_seq = f'[{dset_name}] {char_seq}'
 
@@ -353,7 +343,7 @@ def encode_sents(
     tensor_data['token_type_ids'].append(enc['token_type_ids'])
     tensor_data['attention_mask'].append(enc['attention_mask'])
 
-    answer = answer + [TAG_SET['pad']] * max(0, max_len + 2 - len(answer))
+    answer = answer + [TAG_SET_PAD_ID] * max(0, max_len + 2 - len(answer))
     tensor_data['answer'].append(answer)
 
   return tensor_data
@@ -375,17 +365,6 @@ def write_tensor_data_to_file(exp_name: str, file_name: str, tensor_data: Dict[s
   pickle.dump(tensor_data, open(out_pickle_file_path, 'wb'))
 
   logger.info(f'Finish writing to {out_pickle_file_path}.')
-
-
-def replace_with_unc(
-  tensor_data: Dict[str, List[torch.Tensor]],
-  tknzr: transformers.PreTrainedTokenizerBase,
-) -> Dict[str, List[torch.Tensor]]:
-  unc_tkid = tknzr.encode('[unc]')[0]
-  out_tensor_data = copy.deepcopy(tensor_data)
-  for idx in range(len(tensor_data['input_ids'])):
-    out_tensor_data['input_ids'][idx][1] = unc_tkid
-  return out_tensor_data
 
 
 def main(argv: List[str]) -> None:
@@ -450,48 +429,27 @@ def main(argv: List[str]) -> None:
     #   criterion_encode=criterion_encode,
     #   dset_name=dset_name,
     #   max_len=args.max_len,
-    #   sents=train_sents,
+    #   sents=train_norm_sents,
     #   tknzr=tknzr,
     # )
     # dev_tensor_data = encode_sents(
     #   criterion_encode=criterion_encode,
     #   dset_name=dset_name,
     #   max_len=args.max_len,
-    #   sents=dev_sents,
+    #   sents=dev_norm_sents,
     #   tknzr=tknzr,
     # )
     # test_tensor_data = encode_sents(
     #   criterion_encode=criterion_encode,
     #   dset_name=dset_name,
     #   max_len=args.max_len,
-    #   sents=test_sents,
+    #   sents=test_norm_sents,
     #   tknzr=tknzr,
     # )
 
     # write_tensor_data_to_file(exp_name=args.exp_name, file_name=f'{dset_name}_train.pkl', tensor_data=train_tensor_data)
     # write_tensor_data_to_file(exp_name=args.exp_name, file_name=f'{dset_name}_dev.pkl', tensor_data=dev_tensor_data)
     # write_tensor_data_to_file(exp_name=args.exp_name, file_name=f'{dset_name}_test.pkl', tensor_data=test_tensor_data)
-
-    # if args.use_unc:
-    #   train_tensor_data = replace_with_unc(tensor_data=train_tensor_data, tknzr=tknzr)
-    #   dev_tensor_data = replace_with_unc(tensor_data=dev_tensor_data, tknzr=tknzr)
-    #   test_tensor_data = replace_with_unc(tensor_data=test_tensor_data, tknzr=tknzr)
-
-    #   write_tensor_data_to_file(
-    #     exp_name=args.exp_name,
-    #     file_name=f'{dset_name}_train.unc.pkl',
-    #     tensor_data=train_tensor_data,
-    #   )
-    #   write_tensor_data_to_file(
-    #     exp_name=args.exp_name,
-    #     file_name=f'{dset_name}_dev.unc.pkl',
-    #     tensor_data=dev_tensor_data,
-    #   )
-    #   write_tensor_data_to_file(
-    #     exp_name=args.exp_name,
-    #     file_name=f'{dset_name}_test.unc.pkl',
-    #     tensor_data=test_tensor_data,
-    #   )
 
 
 if __name__ == '__main__':

@@ -22,6 +22,7 @@ TAG_SET_B_ID = TAG_SET['b']
 TAG_SET_E_ID = TAG_SET['e']
 TAG_SET_M_ID = TAG_SET['m']
 TAG_SET_S_ID = TAG_SET['s']
+TAG_SET_PAD_ID = TAG_SET['pad']
 
 # Supported datasets.
 ALL_DSETS = ['as', 'cityu', 'cnc', 'ctb6', 'msr', 'nlpcc', 'pku', 'sxu', 'ud', 'wtb', 'zx']

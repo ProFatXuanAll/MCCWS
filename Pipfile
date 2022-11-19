@@ -17,6 +17,8 @@ tqdm = "*"
 patool = "*"
 pyunpack = "*"
 filelock = "*"
+pandas = "*"
+tabulate = "*"
 
 [dev-packages]
 yapf = "*"

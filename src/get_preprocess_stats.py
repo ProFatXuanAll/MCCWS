@@ -131,9 +131,9 @@ def main(argv: List[str]) -> None:
   all_test_sents = []
 
   for dset_name in preprocess_cfg.use_dset:
-    train_sents = read_sents_from_file(exp_name=args.exp_name, file_name=f'{dset_name}_train.ori.txt')
-    dev_sents = read_sents_from_file(exp_name=args.exp_name, file_name=f'{dset_name}_dev.ori.txt')
-    test_sents = read_sents_from_file(exp_name=args.exp_name, file_name=f'{dset_name}_test.ori.txt')
+    train_sents = read_sents_from_file(exp_name=args.exp_name, file_name=f'{dset_name}_train.norm.txt')
+    dev_sents = read_sents_from_file(exp_name=args.exp_name, file_name=f'{dset_name}_dev.norm.txt')
+    test_sents = read_sents_from_file(exp_name=args.exp_name, file_name=f'{dset_name}_test.norm.txt')
 
     all_train_sents.extend(train_sents)
     all_dev_sents.extend(dev_sents)
